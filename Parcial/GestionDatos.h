@@ -35,7 +35,7 @@ public:
 
 GestionDatos::GestionDatos()
 {
-	nombre_rchivo = "TopYoutubeArtist.csv";
+	nombre_rchivo = "ClienteArchivo.csv";
 	arbol = new ArbolBB<string, string>(imprimir);
 	ht = HashTablaA();
 
@@ -68,15 +68,20 @@ void GestionDatos::LecturaDatosArchivo()
 	{
 		stringstream stream(linea); // Convertir la cadena a un stream
 
-		string col1, col2, col3, col4, col5;
+		string col1, col3, col4, col5,col6,col7;
+		int col2;
 		// Extraer todos los valores de esa fila [considerando 3 columans]
 		getline(stream, col1, delimitador);
 		getline(stream, col2, delimitador);
 		getline(stream, col3, delimitador);
 		getline(stream, col4, delimitador);
 		getline(stream, col5, delimitador);
+		getline(stream, col6, delimitador);
+		getline(stream, col7, delimitador);
+
+
 		arbol->insertar(col2);
-		ht.insert(HashEntidad(col1, col2, col3, col4, col5));
+		ht.insert(Cliente(col1, col2, col3, col4, col5,col6,col7));
 	}
 
 	// Cerramos Archivo

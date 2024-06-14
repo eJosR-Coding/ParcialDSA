@@ -5,7 +5,7 @@
 #include <vector>
 #include <list>
 #include <string>
-#include "HashEntidad.hpp"
+#include "Cliente.h"
 
 using namespace std;
 
@@ -13,7 +13,7 @@ using namespace std;
 
 class HashTablaA {
 private:
-	vector<list<HashEntidad>> theLists;   // Tabla: vector cuyo cada elemento es una Lista de Nodos Hash(key, value)
+	vector<list<Cliente>> theLists;   // Tabla: vector cuyo cada elemento es una Lista de Nodos Hash(key, value)
 	int  currentSize;	//Tamaño del vector
 
 public:
@@ -28,9 +28,9 @@ public:
 			thisList.clear();
 	}
 
-	bool insert(HashEntidad&& x)
+	bool insert(Cliente&& x)
 	{
-		auto& whichList = theLists[myhash(x.getKey())]; //Del vector, obtenemos la lista de elementos según el hash(indice) obtenido
+		auto& whichList = theLists[myhash(x.getNombreCompleto())]; //Del vector, obtenemos la lista de elementos según el hash(indice) obtenido
 
 		whichList.push_back(x); //Agregamos el nuevo elemento(key, value) a la lista del hash(indice)
 
@@ -40,9 +40,9 @@ public:
 	void DispAll() {
 		int pos = 0;
 		for (auto& thisList : theLists) {		// Recorremos el vector<>
-			cout << "Key: " + to_string(pos) << " | ";
+			cout << "nombre completo: " + to_string(pos) << " | ";
 			for (auto& it : theLists[pos]) {	// Recorremos la Lista de cada indice del vector	
-				cout << it.getKey() << ",";		// Imprime key
+				cout << it.getNombreCompleto() << ",";		// Imprime key
 				//cout << "(" << it.getKey() << ", " << it.getValue() << "); ";	// Imprime (key,value)
 			}
 			cout << endl;
@@ -59,12 +59,14 @@ public:
 		//for (auto& thisList : theLists) {		// Recorremos el vector<>
 		cout << "Key: " + to_string(pos) << " | ";
 		for (auto& it : theLists[pos]) {	// Recorremos la Lista de cada indice del vector	
-			if (it.getKey() == key)
+			if (it.getNombreCompleto() == key)
 				//cout << it.getKey() << ",";		// Imprime key
-				cout << "(" << it.getKey()
-				<< ", " << it.getArtist()
-				<< ", " << it.getTotalViews()
-				<< ", " << it.getAvg() << "); ";	// Imprime (key,value)
+				cout << "(" << it.getNombreCompleto()
+				<< ", " << it.getEdad()
+				<< ", " << it.getHabitacion()
+				<< ", " << it.getTipoAlojamiento() 
+				<< ", " << it.getLugar()
+				<< ", " << it.getPromocion() << "); ";	// Imprime (key,value)
 		}
 		cout << endl;
 		//pos++;
