@@ -128,10 +128,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Administrador.h" />
+    <ClInclude Include="Arbol.hpp" />
     <ClInclude Include="Cliente.h" />
     <ClInclude Include="Cola.h" />
     <ClInclude Include="Dependencies.h" />
     <ClInclude Include="Empleado.h" />
+    <ClInclude Include="GestionDatos.h" />
+    <ClInclude Include="HashTable.h" />
     <ClInclude Include="Mantenimiento.h" />
     <ClInclude Include="Resena.h" />
     <ClInclude Include="ServerStatus.h" />
