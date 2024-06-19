@@ -3,21 +3,22 @@
 #define CLIENTE_H
 
 #include "Usuario.h"
-#include "Dependencies.h"
+#include <string>
+#include <sstream>
 
 class Cliente : public Usuario {
 private:
-    string nombreCompleto;
+    std::string nombreCompleto;
     int edad;
-    string habitacion;
-    string tipoAlojamiento;
-    string lugar;
-    string promocion;
+    int habitacion;
+    std::string tipoAlojamiento;
+    std::string lugar;
+    std::string promocion;
 
 public:
-    //En esta seccion de acceso que especifica que lo siguiente son publicos
-    Cliente(int id, string nombreCompleto, int edad, string habitacion, string tipoAlojamiento, string lugar, string promocion)
-        : Usuario(id, nombreCompleto, "N/A"), 
+    // Constructor with default values
+    Cliente(int id = 0, std::string nombreCompleto = "", int edad = 0, int habitacion = 0, std::string tipoAlojamiento = "", std::string lugar = "", std::string promocion = "")
+        : Usuario(id, nombreCompleto, "N/A"),
         nombreCompleto(nombreCompleto),
         edad(edad),
         habitacion(habitacion),
@@ -25,43 +26,35 @@ public:
         lugar(lugar),
         promocion(promocion) {}
 
-    // Este método toString() devuelve una representación en forma de cadena del objeto Cliente.
-    string toString() const override {
-        // Se crea un flujo de salida de cadena.
-        ostringstream ss;
-
-        // Se agregan al flujo de salida las cadenas y los valores de los miembros de datos del objeto Cliente.
-        ss << "ID: " << id << endl;
-        ss << "Nombre Completo: " << nombreCompleto << endl;
-        ss << "Edad: " << edad << endl;
-        ss << "Habitación: " << habitacion << endl;
-        ss << "Tipo Alojamiento: " << tipoAlojamiento << endl;
-        ss << "Lugar: " << lugar << endl;
-        ss << "Promoción: " << promocion << endl;
-
-        // Se convierte el contenido del flujo de salida en una cadena y se devuelve esa cadena.
+    std::string toString() const override {
+        std::ostringstream ss;
+        ss << "ID: " << id << std::endl;
+        ss << "Nombre Completo: " << nombreCompleto << std::endl;
+        ss << "Edad: " << edad << std::endl;
+        ss << "Habitación: " << habitacion << std::endl;
+        ss << "Tipo Alojamiento: " << tipoAlojamiento << std::endl;
+        ss << "Lugar: " << lugar << std::endl;
+        ss << "Promoción: " << promocion << std::endl;
         return ss.str();
     }
 
-
-   
-    string getNombreCompleto() const { return nombreCompleto; }
-    void setNombreCompleto(const string& nombreCompleto) { this->nombreCompleto = nombreCompleto; }
+    std::string getNombreCompleto() const { return nombreCompleto; }
+    void setNombreCompleto(const std::string& nombreCompleto) { this->nombreCompleto = nombreCompleto; }
 
     int getEdad() const { return edad; }
     void setEdad(int edad) { this->edad = edad; }
 
-    string getHabitacion() const { return habitacion; }
-    void setHabitacion(const string& habitacion) { this->habitacion = habitacion; }
+    int getHabitacion() const { return habitacion; }
+    void setHabitacion(int habitacion) { this->habitacion = habitacion; }
 
-    string getTipoAlojamiento() const { return tipoAlojamiento; }
-    void setTipoAlojamiento(const string& tipoAlojamiento) { this->tipoAlojamiento = tipoAlojamiento; }
+    std::string getTipoAlojamiento() const { return tipoAlojamiento; }
+    void setTipoAlojamiento(const std::string& tipoAlojamiento) { this->tipoAlojamiento = tipoAlojamiento; }
 
-    string getLugar() const { return lugar; }
-    void setLugar(const string& lugar) { this->lugar = lugar; }
+    std::string getLugar() const { return lugar; }
+    void setLugar(const std::string& lugar) { this->lugar = lugar; }
 
-    string getPromocion() const { return promocion; }
-    void setPromocion(const string& promocion) { this->promocion = promocion; }
+    std::string getPromocion() const { return promocion; }
+    void setPromocion(const std::string& promocion) { this->promocion = promocion; }
 };
 
 #endif

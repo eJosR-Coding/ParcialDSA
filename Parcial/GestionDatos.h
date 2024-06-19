@@ -2,110 +2,110 @@
 #include <string>
 #include "Arbol.hpp"
 #include "HashTable.h"
-#include<iostream>
-#include<conio.h>
-#include <fstream>	//Gestion de Archivo
-#include <string>	//getline
-#include <sstream>	//stream
-
+#include <iostream>
+#include <conio.h>
+#include <fstream> //Gestion de Archivo
+#include <sstream> //stream
+#include "Cliente.h"
 using namespace std;
 
-void imprimir(string e)
-{
-	cout << "" << e << endl;
+void imprimir(Cliente cliente) {
+    cout << cliente.getNombreCompleto() << endl;
 }
 
-class GestionDatos
-{
+class GestionDatos {
 private:
-	ArbolBB<string, string>* arbol;
-	HashTablaA ht;
-
-	string nombre_rchivo;
+    ArbolBB<Cliente>* arbol;
+    HashTablaA ht;
+    string nombre_rchivo;
 
 public:
-	GestionDatos();
-	void LecturaDatosArchivo();
-	void Intervalo_Artistas();
-	void Generar_Arbol();
-	string buscar_Codigo_Artista();
-	void GenerarListaPreOrden();
-	void Eliminar_Artistas();
+    GestionDatos();
+    void LecturaDatosArchivo();
+    void Intervalo_Clientes();
+    void Generar_Arbol();
+    string buscar_Cliente(string nombre);
+    void GenerarListaPreOrden();
+    void Eliminar_Cliente(string nombre);
 };
 
-GestionDatos::GestionDatos()
-{
-	nombre_rchivo = "ClienteArchivo.csv";
-	arbol = new ArbolBB<string, string>(imprimir);
-	ht = HashTablaA();
-
+GestionDatos::GestionDatos() {
+    nombre_rchivo = "ClienteArchivo.csv";
+    arbol = new ArbolBB<Cliente>(imprimir);
+    ht = HashTablaA();
 }
 
-void GestionDatos::LecturaDatosArchivo()
-{
-	/*
-	* 1_ Lee Archivo .csv
-	* 2_ Imprime columnas de cada linea en consola
-	*/
+void GestionDatos::LecturaDatosArchivo() {
+    ifstream archIN;
+    archIN.open(nombre_rchivo, ios::in); // Open file for reading
 
-	ifstream archIN;
-	archIN.open(nombre_rchivo, ios::in); //Apertura
+    if (!archIN.is_open()) {
+        cout << "Error: No se pudo abrir el archivo !!!" << endl;
+        exit(1);
+    }
 
-	if (!archIN.is_open())
-	{
-		cout << "Error: No se pudo abrir el archivo !!!" << endl;
-		exit(1);
-	}
+    string linea;
+    char delimitador = '|'; // Column separator
 
-	string linea;
-	char delimitador = '|'; //Separador de cada columna de la línea
+    // Skip the header line
+    getline(archIN, linea);
 
-	// Encabezado: Leemos la primera línea para descartarla, pues es el encabezado
-	getline(archIN, linea);
+    // Read each line
+    while (getline(archIN, linea)) {
+        stringstream stream(linea); // Convert line to stringstream
 
-	// Contenido: Leemos todas las líneas
-	while (getline(archIN, linea))
-	{
-		stringstream stream(linea); // Convertir la cadena a un stream
+        string col1, col3, col4, col5, col6;
+        int col2, col3Int;
 
-		string col1, col3, col4, col5,col6,col7;
-		int col2;
-		// Extraer todos los valores de esa fila [considerando 3 columans]
-		getline(stream, col1, delimitador);
-		getline(stream, col2, delimitador);
-		getline(stream, col3, delimitador);
-		getline(stream, col4, delimitador);
-		getline(stream, col5, delimitador);
-		getline(stream, col6, delimitador);
-		getline(stream, col7, delimitador);
+        getline(stream, col1, delimitador); // NombreCompleto
+        string col2Str; // edad
+        getline(stream, col2Str, delimitador);
+        col2 = stoi(col2Str); // Convertir a entero
+        string col3Str; // habitacion
+        getline(stream, col3Str, delimitador);
+        col3Int = stoi(col3Str); // Convertir a entero
+        getline(stream, col4, delimitador); // tipoAlojamiento
+        getline(stream, col5, delimitador); // lugar
+        getline(stream, col6, delimitador); // promocion
 
+        // Insertarlo en las estructuras siguiendo el ejemplo de clase
+        Cliente cliente(1, col1, col2, col3Int, col4, col5, col6); // Asumiendo que el ID es 1 por simplicidad
+        arbol->insertar(cliente);
+        ht.insert(cliente);
+    }
 
-		arbol->insertar(col2);
-		ht.insert(Cliente(col1, col2, col3, col4, col5,col6,col7));
-	}
-
-	// Cerramos Archivo
-	archIN.close();
+    // Close the file
+    archIN.close();
 }
 
-void GestionDatos::Generar_Arbol()
-{
-	arbol->imprimirArbol();
+void GestionDatos::Generar_Arbol() {
+    arbol->imprimirArbol();
 }
-// función para mostrar los artistas cuyos nombres empiezan por R y S y llama a la función del arbol _Intervalo_Artistas para hacer las comparaciones
-void GestionDatos::Intervalo_Artistas()
-{
-	arbol->Intervalo_Artistas("R", "S");
+
+void GestionDatos::Intervalo_Clientes() {
+    arbol->Intervalo_Clientes(Cliente(0, "R", 0, 0, "", "", ""), Cliente(0, "S", 0, 0, "", "", ""));
 }
-string GestionDatos::buscar_Codigo_Artista()
-{
-	arbol->Buscar();
+
+string GestionDatos::buscar_Cliente(string nombre) {
+    Cliente cliente(0, nombre, 0, 0, "", "", "");
+    if (arbol->buscar(cliente)) {
+        return "Cliente encontrado";
+    }
+    else {
+        return "Cliente no encontrado";
+    }
 }
-void GestionDatos::GenerarListaPreOrden()
-{
-	arbol->preOrden();
+
+void GestionDatos::GenerarListaPreOrden() {
+    arbol->preOrden();
 }
-void GestionDatos::Eliminar_Artistas()
-{
-	arbol->eliminar();
+
+void GestionDatos::Eliminar_Cliente(string nombre) {
+    Cliente cliente(0, nombre, 0, 0, "", "", "");
+    if (arbol->eliminar(cliente)) {
+        cout << "Cliente eliminado con éxito" << endl;
+    }
+    else {
+        cout << "No se pudo encontrar el cliente para eliminar" << endl;
+    }
 }

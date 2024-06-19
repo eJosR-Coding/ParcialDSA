@@ -41,14 +41,15 @@ void AnadirReviews(Nodo<Usuario*>* nodoCliente, Lista<Resena*>& listaReviews) {
 
     if (cliente != nullptr) {
         string nombre = cliente->getNombreCompleto();
-        string habitacion = cliente->getHabitacion();
+        int habitacion = cliente->getHabitacion();
         int rating = rand() % 10 + 1;
-        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombre, "Reseña sobre la habitación: " + habitacion, rating);
+        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombre, "Reseña sobre la habitación: " + std::to_string(habitacion), rating);
         listaReviews.insertarFinal(nuevaReview);
     }
 
     AnadirReviews(nodoCliente->siguiente, listaReviews);
 }
+
 
 int sumaEdadesRecursiva(Nodo<Usuario*>* nodoCliente) {
     if (nodoCliente == nullptr) {
@@ -225,7 +226,7 @@ void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& lista
     default: promocion = "Indefinida";
     }
 
-    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, habitacion, tipoAlojamiento, lugar, promocion);
+    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
     listaUsuarios.insertarFinal(nuevoCliente);
 
     cout << "Cliente registrado con éxito.\n";
@@ -301,7 +302,7 @@ void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, int& id) {
     default: promocion = "Indefinida";
     }
 
-    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, habitacion, tipoAlojamiento, lugar, promocion);
+    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
     colaUsuarios.encolar(nuevoCliente);
 
     cout << "Usuario registrado en la cola con éxito.\n";

@@ -13,75 +13,84 @@ using namespace std;
 
 class HashTablaA {
 private:
-	vector<list<Cliente>> theLists;   // Tabla: vector cuyo cada elemento es una Lista de Nodos Hash(key, value)
-	int  currentSize;	//Tamaño del vector
+    vector<list<Cliente>> theLists;   // Tabla: vector cuyo cada elemento es una Lista de Nodos Hash(key, value)
+    int  currentSize;    //Tamaño del vector
 
 public:
-	explicit HashTablaA(int size = 101) : currentSize{ 0 }
-	{
-		theLists.resize(101);	//Resize al vector, para que tenga 101 elementos: 101 listas de Nodos Hash(key, value)
-	}
+    explicit HashTablaA(int size = 101) : currentSize{ 0 }
+    {
+        theLists.resize(101);    //Resize al vector, para que tenga 101 elementos: 101 listas de Nodos Hash(key, value)
+    }
 
-	void makeEmpty()
-	{
-		for (auto& thisList : theLists)
-			thisList.clear();
-	}
+    void makeEmpty()
+    {
+        for (auto& thisList : theLists)
+            thisList.clear();
+    }
 
-	bool insert(Cliente&& x)
-	{
-		auto& whichList = theLists[myhash(x.getNombreCompleto())]; //Del vector, obtenemos la lista de elementos según el hash(indice) obtenido
+    bool insert(const Cliente& x)
+    {
+        auto& whichList = theLists[myhash(x.getNombreCompleto())]; //Del vector, obtenemos la lista de elementos según el hash(indice) obtenido
 
-		whichList.push_back(x); //Agregamos el nuevo elemento(key, value) a la lista del hash(indice)
+        whichList.push_back(x); //Agregamos el nuevo elemento(key, value) a la lista del hash(indice)
 
-		return true;
-	}
+        return true;
+    }
 
-	void DispAll() {
-		int pos = 0;
-		for (auto& thisList : theLists) {		// Recorremos el vector<>
-			cout << "nombre completo: " + to_string(pos) << " | ";
-			for (auto& it : theLists[pos]) {	// Recorremos la Lista de cada indice del vector	
-				cout << it.getNombreCompleto() << ",";		// Imprime key
-				//cout << "(" << it.getKey() << ", " << it.getValue() << "); ";	// Imprime (key,value)
-			}
-			cout << endl;
-			pos++;
-		}
-	}
+    bool insert(Cliente&& x)
+    {
+        auto& whichList = theLists[myhash(x.getNombreCompleto())]; //Del vector, obtenemos la lista de elementos según el hash(indice) obtenido
 
-	// esta es la función buscar en base al codigo que es la key
-	void buscar(string key)
-	{
-		int pos = 0;
-		pos = myhash(key);
+        whichList.push_back(std::move(x)); //Agregamos el nuevo elemento(key, value) a la lista del hash(indice)
 
-		//for (auto& thisList : theLists) {		// Recorremos el vector<>
-		cout << "Key: " + to_string(pos) << " | ";
-		for (auto& it : theLists[pos]) {	// Recorremos la Lista de cada indice del vector	
-			if (it.getNombreCompleto() == key)
-				//cout << it.getKey() << ",";		// Imprime key
-				cout << "(" << it.getNombreCompleto()
-				<< ", " << it.getEdad()
-				<< ", " << it.getHabitacion()
-				<< ", " << it.getTipoAlojamiento() 
-				<< ", " << it.getLugar()
-				<< ", " << it.getPromocion() << "); ";	// Imprime (key,value)
-		}
-		cout << endl;
-		//pos++;
-	//}
-	}
+        return true;
+    }
+
+    void DispAll() {
+        int pos = 0;
+        for (auto& thisList : theLists) {        // Recorremos el vector<>
+            cout << "nombre completo: " + to_string(pos) << " | ";
+            for (auto& it : theLists[pos]) {    // Recorremos la Lista de cada indice del vector    
+                cout << it.getNombreCompleto() << ",";        // Imprime key
+                //cout << "(" << it.getKey() << ", " << it.getValue() << "); ";    // Imprime (key,value)
+            }
+            cout << endl;
+            pos++;
+        }
+    }
+
+    // esta es la función buscar en base al codigo que es la key
+    void buscar(string key)
+    {
+        int pos = 0;
+        pos = myhash(key);
+
+        //for (auto& thisList : theLists) {        // Recorremos el vector<>
+        cout << "Key: " + to_string(pos) << " | ";
+        for (auto& it : theLists[pos]) {    // Recorremos la Lista de cada indice del vector    
+            if (it.getNombreCompleto() == key)
+                //cout << it.getKey() << ",";        // Imprime key
+                cout << "(" << it.getNombreCompleto()
+                << ", " << it.getEdad()
+                << ", " << it.getHabitacion()
+                << ", " << it.getTipoAlojamiento()
+                << ", " << it.getLugar()
+                << ", " << it.getPromocion() << "); ";    // Imprime (key,value)
+        }
+        cout << endl;
+        //pos++;
+    //}
+    }
 private:
 
-	// ...:: FUNCION HASH ::...
+    // ...:: FUNCION HASH ::...
 
-	size_t myhash(string key) const {
-		size_t hashVal = 0;			//Funcion de Dispersion: k (the same key)
-		hashVal %= theLists.size();		//Mapa de Compresion: Aritmetica Modular: F(k) = |k| mod N
-		//hashVal = 10; //Prueba para verificar como se almacenan los elementos si obtienen el mismo hash
-		return(hashVal);	//retornará el indice obtenido para la Tabla HASH
-	}
+    size_t myhash(string key) const {
+        size_t hashVal = 0;            //Funcion de Dispersion: k (the same key)
+        hashVal %= theLists.size();        //Mapa de Compresion: Aritmetica Modular: F(k) = |k| mod N
+        //hashVal = 10; //Prueba para verificar como se almacenan los elementos si obtienen el mismo hash
+        return(hashVal);    //retornará el indice obtenido para la Tabla HASH
+    }
 };
 
 #endif // !__HASHTABLA_HPP__
