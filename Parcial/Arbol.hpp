@@ -9,14 +9,6 @@
 using namespace std;
 
 template <class T>
-class Nodo {
-public:
-    T elemento;
-    Nodo* izq;
-    Nodo* der;
-};
-
-template <class T>
 class ArbolBB {
     typedef function<int(T, T)> Comp; // Lambda para comparar
 
