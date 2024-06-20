@@ -1,10 +1,10 @@
-#pragma once
 #ifndef __ARBOLBB_HPP__
 #define __ARBOLBB_HPP__
 
 #include <functional>
 #include <string>
 #include "Cliente.h"
+#include "NodoArbol.h"
 
 using namespace std;
 
@@ -12,7 +12,7 @@ template <class T>
 class ArbolBB {
     typedef function<int(T, T)> Comp; // Lambda para comparar
 
-    Nodo<T>* raiz;
+    NodoArbol<T>* raiz;
     void(*procesar)(T); // Puntero a función
 
     Comp comparar; // Lambda de criterio de comparación
@@ -23,7 +23,7 @@ public:
         this->comparar = [](T a, T b)->int { return a.getNombreCompleto().compare(b.getNombreCompleto()); };
         raiz = nullptr;
     }
-    Nodo<T>* getRaiz() { return raiz; }
+    NodoArbol<T>* getRaiz() { return raiz; }
 
     bool insertar(T e) {
         return _insertar(raiz, e);
@@ -46,8 +46,7 @@ public:
     bool buscar(T e) {
         return _buscar(raiz, e);
     }
-    Nodo<T>* obtener(T e)
-    {
+    NodoArbol<T>* obtener(T e) {
         return _obtener(raiz, e);
     }
 
@@ -59,13 +58,12 @@ public:
         _imprimirArbol(raiz, "", true);
     }
 
-    void Intervalo_Clientes(T min, T max)
-    {
+    void Intervalo_Clientes(T min, T max) {
         _Intervalo_Clientes(raiz, min, max);
     }
 
 private:
-    bool _buscar(Nodo<T>* nodo, T e) {
+    bool _buscar(NodoArbol<T>* nodo, T e) {
         if (nodo == nullptr) return false;
         else {
             int r = comparar(nodo->elemento, e);
@@ -79,11 +77,9 @@ private:
         }
     }
 
-    bool _insertar(Nodo<T>*& nodo, T e) {
+    bool _insertar(NodoArbol<T>*& nodo, T e) {
         if (nodo == nullptr) {
-            nodo = new Nodo<T>();
-            nodo->elemento = e;
-            nodo->izq = nodo->der = nullptr; // Inicializar hijos
+            nodo = new NodoArbol<T>(e);
             return true;
         }
         else {
@@ -98,21 +94,21 @@ private:
         }
     }
 
-    void _enOrden(Nodo<T>* nodo) {    //Izq => Raiz => Der
+    void _enOrden(NodoArbol<T>* nodo) {    //Izq => Raiz => Der
         if (nodo == nullptr) return;
         _enOrden(nodo->izq);
         procesar(nodo->elemento);
         _enOrden(nodo->der);
     }
 
-    void _preOrden(Nodo<T>* nodo) {    //Raiz => Izq => Der
+    void _preOrden(NodoArbol<T>* nodo) {    //Raiz => Izq => Der
         if (nodo == nullptr) return;
         procesar(nodo->elemento);
         _preOrden(nodo->izq);
         _preOrden(nodo->der);
     }
 
-    void _postOrden(Nodo<T>* nodo) {    //Izq => Der => Raiz
+    void _postOrden(NodoArbol<T>* nodo) {    //Izq => Der => Raiz
         if (nodo == nullptr) return;
         _postOrden(nodo->izq);
         _postOrden(nodo->der);
@@ -123,11 +119,10 @@ private:
         return raiz == nullptr;
     }
 
-    int _cantidad(Nodo<T>* nodo) {
+    int _cantidad(NodoArbol<T>* nodo) {
         if (nodo == nullptr)
             return 0;
-        else
-        {
+        else {
             int ci, cd;
             ci = _cantidad(nodo->izq);
             cd = _cantidad(nodo->der);
@@ -135,11 +130,10 @@ private:
         }
     }
 
-    int _altura(Nodo<T>* nodo) {
+    int _altura(NodoArbol<T>* nodo) {
         if (nodo == nullptr)
             return 0;
-        else
-        {
+        else {
             int ai, ad;
             ai = 1 + _altura(nodo->izq);
             ad = 1 + _altura(nodo->der);
@@ -147,7 +141,7 @@ private:
         }
     }
 
-    bool _eliminar(Nodo<T>*& nodo, T e) {
+    bool _eliminar(NodoArbol<T>*& nodo, T e) {
         if (nodo == nullptr) return false;
         else {
             int r = comparar(nodo->elemento, e);
@@ -164,21 +158,20 @@ private:
                     return true;
                 }
                 else if (nodo->izq == nullptr) { //Caso 2: Izq Vacío y Der No Vacío
-                    Nodo<T>* temp = nodo;
+                    NodoArbol<T>* temp = nodo;
                     nodo = nodo->der;
                     delete temp;
                     return true;
                 }
                 else if (nodo->der == nullptr) { //Caso 3: Der Vacío e Izq No Vacío
-                    Nodo<T>* temp = nodo;
+                    NodoArbol<T>* temp = nodo;
                     nodo = nodo->izq;
                     delete temp;
                     return true;
                 }
                 else { //Caso 4: Izq y Der No Vacíos
-                    Nodo<T>* aux = nodo->der; //Se establece buscar el menor elemento por la derecha
-                    while (aux->izq != nullptr)
-                    {
+                    NodoArbol<T>* aux = nodo->der; //Se establece buscar el menor elemento por la derecha
+                    while (aux->izq != nullptr) {
                         aux = aux->izq; //Se obtiene la hoja menor
                     }
                     nodo->elemento = aux->elemento; //Se actualiza el elemento en el nodo raiz y
@@ -188,8 +181,7 @@ private:
         }
     }
 
-    void _imprimirArbol(Nodo<T>* nodo, string indent, bool last)
-    {
+    void _imprimirArbol(NodoArbol<T>* nodo, string indent, bool last) {
         if (nodo != nullptr) {
             cout << indent;
             if (last) {
@@ -206,12 +198,10 @@ private:
         }
     }
 
-    void _Intervalo_Clientes(Nodo<T>* nodo, T min, T max)
-    {
+    void _Intervalo_Clientes(NodoArbol<T>* nodo, T min, T max) {
         if (nodo == nullptr)
             return;
-        else
-        {
+        else {
             if (comparar(min, nodo->elemento) < 0)
                 _Intervalo_Clientes(nodo->izq, min, max);
             if (comparar(min, nodo->elemento) <= 0 && comparar(max, nodo->elemento) >= 0)

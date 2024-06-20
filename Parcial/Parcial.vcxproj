@@ -134,8 +134,10 @@
     <ClInclude Include="Dependencies.h" />
     <ClInclude Include="Empleado.h" />
     <ClInclude Include="GestionDatos.h" />
+    <ClInclude Include="Grafos.hpp" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="Mantenimiento.h" />
+    <ClInclude Include="NodoArbol.h" />
     <ClInclude Include="Resena.h" />
     <ClInclude Include="ServerStatus.h" />
     <ClInclude Include="Invetario.h" />

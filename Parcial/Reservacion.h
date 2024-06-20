@@ -2,6 +2,7 @@
 #ifndef RESERVACION_H
 #define RESERVACION_H
 
+#include "Lista.h"
 #include "Dependencies.h"
 using namespace std;
 

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Lista.h"
 #include "Cliente.h"
-#include "Invetario.h" 
+#include "Invetario.h"
 #include "Empleado.h"
 #include "Promocion.h"
 #include "ServerStatus.h"
@@ -9,10 +9,14 @@
 #include "Administrador.h"
 #include "Pago.h"
 #include "Resena.h"
-#include "Cola.h" 
+#include "Cola.h"
+#include "Arbol.hpp"
+#include "HashTable.h"
+#include "GestionDatos.h"
 
 using namespace System;
 using namespace std;
+
 
 void mostrarMenu() {
     cout << "\n========================================\n";
@@ -23,10 +27,18 @@ void mostrarMenu() {
     cout << "3. Registrar Empleado\n";
     cout << "4. Mostrar Usuarios\n";
     cout << "5. Mostrar Reservas hasta la fecha\n";
-    cout << "6. Resenas\n";
+    cout << "6. Reseñas\n";
     cout << "7. Mostrar primer cliente registrado\n";
     cout << "8. Calcular suma de edades de los clientes\n";
-    cout << "9. Salir\n";
+    cout << "9. Buscar Cliente en Árbol\n";
+    cout << "10. Buscar Cliente en HashTable\n";
+    cout << "11. Mostrar Clientes Ordenados\n";
+    cout << "12. Mostrar Clientes por Rango de Nombres\n";
+    cout << "13. Contar Clientes en Árbol\n";
+    cout << "14. Eliminar Cliente del Árbol y HashTable\n";
+    cout << "15. Mostrar Todos los Clientes/Empleados (HashTable)\n";
+    cout << "16. Leer Datos desde Archivo\n";
+    cout << "17. Salir\n";
     cout << "========================================\n";
     cout << "Seleccione una opcion: ";
 }
@@ -50,7 +62,6 @@ void AnadirReviews(Nodo<Usuario*>* nodoCliente, Lista<Resena*>& listaReviews) {
     AnadirReviews(nodoCliente->siguiente, listaReviews);
 }
 
-
 int sumaEdadesRecursiva(Nodo<Usuario*>* nodoCliente) {
     if (nodoCliente == nullptr) {
         return 0;
@@ -73,7 +84,7 @@ int restaEdadesLambda(Nodo<Usuario*>* nodoCliente) {
         if (cliente != nullptr) {
             totalResta -= cliente->getEdad();
         }
-        };
+    };
 
     // Iteramos sobre la lista de nodos
     while (nodoCliente != nullptr) {
@@ -83,6 +94,11 @@ int restaEdadesLambda(Nodo<Usuario*>* nodoCliente) {
     }
 
     return totalResta;
+}
+
+void mostrarTodosHashTable(HashTablaA& tabla) {
+    cout << "Mostrando todos los clientes/empleados en la tabla hash:\n";
+    tabla.DispAll();
 }
 
 void generarFactura(const Cliente& cliente, const Inventario& inventario, int facturaId) {
@@ -160,6 +176,152 @@ void generarFactura(const Cliente& cliente, const Inventario& inventario, int fa
         Pago nuevoPago(facturaId, facturaId, total, metodoPago);
         nuevoPago.confirmarPago();
     }
+}
+
+void buscarClienteArbol(ArbolBB<Cliente>& arbol) {
+    string nombre;
+    cout << "Ingrese nombre completo del cliente para buscar: ";
+    cin.ignore();
+    getline(cin, nombre);
+
+    Cliente cliente(0, nombre, 0, 0, "", "", "");
+    if (arbol.buscar(cliente)) {
+        cout << "Cliente encontrado en el árbol.\n";
+    }
+    else {
+        cout << "Cliente no encontrado en el árbol.\n";
+    }
+}
+
+void buscarClienteHashTable(HashTablaA& tabla) {
+    string nombre;
+    cout << "Ingrese nombre completo del cliente para buscar: ";
+    cin.ignore();
+    getline(cin, nombre);
+
+    tabla.buscar(nombre);
+}
+
+
+void mostrarClientesOrdenados(ArbolBB<Cliente>& arbol) {
+    cout << "Clientes ordenados alfabeticamente:\n";
+    arbol.enOrden();
+}
+
+void mostrarClientesPorRango(ArbolBB<Cliente>& arbol) {
+    string min, max;
+    cout << "Ingrese nombre mínimo del rango: ";
+    cin.ignore();
+    getline(cin, min);
+    cout << "Ingrese nombre máximo del rango: ";
+    getline(cin, max);
+
+    Cliente clienteMin(0, min, 0, 0, "", "", "");
+    Cliente clienteMax(0, max, 0, 0, "", "", "");
+    cout << "Clientes en el rango [" << min << " - " << max << "]:\n";
+    arbol.Intervalo_Clientes(clienteMin, clienteMax);
+}
+
+void contarClientesArbol(ArbolBB<Cliente>& arbol) {
+    int cantidad = arbol.cantidad();
+    cout << "Cantidad de clientes registrados en el árbol: " << cantidad << "\n";
+}
+
+void eliminarClienteArbolYHash(ArbolBB<Cliente>& arbol, HashTablaA& tabla) {
+    string nombre;
+    cout << "Ingrese nombre completo del cliente para eliminar: ";
+    cin.ignore();
+    getline(cin, nombre);
+
+    Cliente cliente(0, nombre, 0, 0, "", "", "");
+    if (arbol.eliminar(cliente)) {
+        cout << "Cliente eliminado del árbol con éxito.\n";
+    }
+    else {
+        cout << "Cliente no encontrado en el árbol.\n";
+    }
+}
+
+void registrarClienteEnEstructuras(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, ArbolBB<Cliente>& arbol, HashTablaA& tabla, int& id) {
+    system("cls");
+    cout << "\n*Registro de Cliente*\n";
+    cout << "Ingrese nombre completo: ";
+    cin.ignore();
+    string nombreCompleto;
+    getline(cin, nombreCompleto);
+
+    cout << "Ingrese edad: ";
+    int edadTemporal;
+    cin >> edadTemporal;
+    while (edadTemporal <= 0 || edadTemporal >= 100) {
+        cout << "Edad inválida. Ingrese nuevamente: ";
+        cin >> edadTemporal;
+    }
+    int edad = edadTemporal;
+
+    Inventario inventario;
+
+    cout << "Ingrese el número de habitación: ";
+    string habitacion;
+    cin >> habitacion;
+
+    cout << "Seleccione el tipo de alojamiento: " << endl;
+    cout << "1. Departamento\n";
+    cout << "2. Casa de playa\n";
+    cout << "3. Cabaña\n";
+    int opcionTipoAlojamiento;
+    cin >> opcionTipoAlojamiento;
+    while (opcionTipoAlojamiento < 1 || opcionTipoAlojamiento > 3) {
+        cout << "Opción inválida. Ingrese nuevamente: ";
+        cin >> opcionTipoAlojamiento;
+    }
+    string tipoAlojamiento;
+    switch (opcionTipoAlojamiento) {
+    case 1: tipoAlojamiento = "Departamento"; break;
+    case 2: tipoAlojamiento = "Casa de playa"; break;
+    case 3: tipoAlojamiento = "Cabaña"; break;
+    default: tipoAlojamiento = "Indefinido";
+    }
+
+    cout << "Ingrese nombre del hospedaje: " << endl;
+    string lugar;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    getline(cin, lugar);
+
+    cout << "Seleccione la promoción: " << endl;
+    cout << "1. Interbank\n";
+    cout << "2. BCP\n";
+    cout << "3. Sin promoción\n";
+    int opcionPromocion;
+    cin >> opcionPromocion;
+    while (opcionPromocion < 1 || opcionPromocion > 3) {
+        cout << "Opción inválida. Ingrese nuevamente: ";
+        cin >> opcionPromocion;
+    }
+    string promocion;
+    switch (opcionPromocion) {
+    case 1: promocion = "Interbank"; break;
+    case 2: promocion = "BCP"; break;
+    case 3: promocion = "Sin promoción"; break;
+    default: promocion = "Indefinida";
+    }
+
+    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
+    listaUsuarios.insertarFinal(nuevoCliente);
+
+    cout << "Cliente registrado con éxito.\n";
+    generarFactura(*nuevoCliente, inventario, id);
+
+    Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
+    listaReservaciones.insertarFinal(nuevaReservacion);
+
+    AnadirReviews(listaUsuarios.getInicio(), listaReviews);
+
+    // Insertar en el árbol y en la tabla hash
+    arbol.insertar(*nuevoCliente);
+    tabla.insert(*nuevoCliente);
+
+    cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
 }
 
 void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, int& id) {
@@ -325,7 +487,6 @@ void atenderClientesDeCola(Cola<Usuario*>& colaUsuarios, void (*mostrarInformaci
     cout << "Todos los usuarios han sido atendidos.\n";
 }
 
-
 void registrarEmpleado(Lista<Usuario*>& listaUsuarios, int& id) {
     system("cls");
     cout << "\n*Registro de Empleado*\n";
@@ -337,7 +498,7 @@ void registrarEmpleado(Lista<Usuario*>& listaUsuarios, int& id) {
     cout << "Ingrese edad: ";
     int edadTemporal;
     cin >> edadTemporal;
-    while (edadTemporal <= 0 || edadTemporal <= 100 ) {
+    while (edadTemporal <= 0 || edadTemporal <= 100) {
         cout << "Edad inválida. Ingrese nuevamente: ";
         cin >> edadTemporal;
     }
@@ -398,6 +559,7 @@ void registrarEmpleado(Lista<Usuario*>& listaUsuarios, int& id) {
     listaUsuarios.mostrar();
 }
 
+
 int main() {
     ServerStatus servidor;
     servidor.encender();
@@ -406,8 +568,13 @@ int main() {
     Lista<Resena*> listaReviews;
     Lista<Usuario*> listaUsuarios;
     Cola<Usuario*> colaUsuarios;
+    ArbolBB<Cliente> arbol(imprimir);
+    HashTablaA tabla;
+    GestionDatos gestionDatos;
 
-    int opcion = 0;    
+    gestionDatos.LecturaDatosArchivo(); // Leer datos desde el archivo al inicio
+
+    int opcion = 0;
     Administrador admin("admin123");
 
     if (!admin.inicioSesion()) {
@@ -445,7 +612,6 @@ int main() {
             }
             break;
 
-          
         case 2:
             atenderClientesDeCola(colaUsuarios, mostrarInfoCliente);
             system("cls");
@@ -455,6 +621,7 @@ int main() {
             registrarEmpleado(listaUsuarios, id);
             system("cls");
             break;
+
         case 4:
             system("cls");
             cout << "Usuarios registrados:\n";
@@ -478,13 +645,13 @@ int main() {
                 system("cls");
             }
             break;
-        
-            break;
+
         case 5:
             system("cls");
             cout << "Reservaciones hasta la fecha: \n";
             Reservacion::mostrarReservaciones(listaReservaciones);
             break;
+
         case 6:
             system("cls");
             cout << "Reseñas hasta la fecha: " << endl;
@@ -499,7 +666,8 @@ int main() {
                 cout << "No hay reseñas disponibles.\n";
             }
             break;
-        case 7: 
+
+        case 7:
             system("cls");
             try {
                 Usuario* primerCliente = listaUsuarios.obtenerUltimoSinEliminar();
@@ -509,6 +677,7 @@ int main() {
                 cout << e.what() << endl;
             }
             break;
+
         case 8:
         {
             system("cls");
@@ -530,16 +699,49 @@ int main() {
             }
             break;
         }
-            break;
+
         case 9:
+            buscarClienteArbol(arbol);
+            break;
+
+        case 10:
+            buscarClienteHashTable(tabla);
+            break;
+
+        case 11:
+            mostrarClientesOrdenados(arbol);
+            break;
+
+        case 12:
+            mostrarClientesPorRango(arbol);
+            break;
+
+        case 13:
+            contarClientesArbol(arbol);
+            break;
+
+        case 14:
+            eliminarClienteArbolYHash(arbol, tabla);
+            break;
+
+        case 15:
+            mostrarTodosHashTable(tabla);
+            break;
+
+        case 16:
+            gestionDatos.LecturaDatosArchivo();
+            cout << "Datos leídos desde el archivo.\n";
+            break;
+
+        case 17:
             cout << "Saliendo del sistema.\n";
             servidor.apagar();
             break;
+
         default:
             cout << "Opción no válida. Por favor intente nuevamente.\n";
-
         }
-    } while (opcion != 8);
+    } while (opcion != 17);
 
     return 0;
 }
