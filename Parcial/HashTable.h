@@ -15,7 +15,7 @@ private:
     int currentSize;    // Tamaño del vector
 
 public:
-    explicit HashTablaA(int size = 101) : currentSize{ 0 }
+    explicit HashTablaA(int size = 30) : currentSize{ 0 }
     {
         theLists.resize(size);    // Resize al vector, para que tenga `size` elementos: `size` listas de Nodos Hash(key, value)
     }
@@ -48,12 +48,8 @@ public:
         for (size_t i = 0; i < theLists.size(); ++i) {        // Recorremos el vector<>
             cout << "Indice " << i << ": ";
             for (const auto& it : theLists[i]) {    // Recorremos la Lista de cada indice del vector    
-                cout << "Nombre Completo: " << it.getNombreCompleto()
-                    << ", Edad: " << it.getEdad()
-                    << ", Habitacion: " << it.getHabitacion()
-                    << ", Tipo Alojamiento: " << it.getTipoAlojamiento()
-                    << ", Lugar: " << it.getLugar()
-                    << ", Promocion: " << it.getPromocion() << " | ";
+                cout << it.getNombreCompleto() << ",";
+                
             }
             cout << endl;
         }

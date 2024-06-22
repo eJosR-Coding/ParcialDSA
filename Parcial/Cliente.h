@@ -8,7 +8,7 @@
 
 class Cliente : public Usuario {
 private:
-    std::string nombreCompleto;
+    string nombreCompleto;
     int edad;
     int habitacion;
     std::string tipoAlojamiento;

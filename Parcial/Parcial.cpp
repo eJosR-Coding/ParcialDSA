@@ -18,6 +18,8 @@ using namespace System;
 using namespace std;
 
 
+
+
 void mostrarMenu() {
     cout << "\n========================================\n";
     cout << "===          Menu Cloudbeds          ===\n";
@@ -39,28 +41,11 @@ void mostrarMenu() {
     cout << "15. Mostrar Todos los Clientes/Empleados (HashTable)\n";
     cout << "16. Leer Datos desde Archivo\n";
     cout << "17. Salir\n";
-    cout << "========================================\n";
+    cout << "========================================\n";   
     cout << "Seleccione una opcion: ";
 }
 
-void AnadirReviews(Nodo<Usuario*>* nodoCliente, Lista<Resena*>& listaReviews) {
-    if (nodoCliente == nullptr) {
-        return;
-    }
 
-    Usuario* usuario = nodoCliente->valor;
-    Cliente* cliente = dynamic_cast<Cliente*>(usuario);
-
-    if (cliente != nullptr) {
-        string nombre = cliente->getNombreCompleto();
-        int habitacion = cliente->getHabitacion();
-        int rating = rand() % 10 + 1;
-        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombre, "Reseña sobre la habitación: " + std::to_string(habitacion), rating);
-        listaReviews.insertarFinal(nuevaReview);
-    }
-
-    AnadirReviews(nodoCliente->siguiente, listaReviews);
-}
 
 int sumaEdadesRecursiva(Nodo<Usuario*>* nodoCliente) {
     if (nodoCliente == nullptr) {
@@ -96,10 +81,7 @@ int restaEdadesLambda(Nodo<Usuario*>* nodoCliente) {
     return totalResta;
 }
 
-void mostrarTodosHashTable(HashTablaA& tabla) {
-    cout << "Mostrando todos los clientes/empleados en la tabla hash:\n";
-    tabla.DispAll();
-}
+
 
 void generarFactura(const Cliente& cliente, const Inventario& inventario, int facturaId) {
     cout << "\n*Factura*\n";
@@ -317,14 +299,10 @@ void registrarClienteEnEstructuras(Lista<Usuario*>& listaUsuarios, Lista<Reserva
 
     AnadirReviews(listaUsuarios.getInicio(), listaReviews);
 
-    // Insertar en el árbol y en la tabla hash
-    arbol.insertar(*nuevoCliente);
-    tabla.insert(*nuevoCliente);
-
     cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
 }
 
-void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, int& id) {
+void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, HashTablaA& tablaClientes, int& id) {
     system("cls");
     cout << "\n*Registro de Cliente*\n";
     cout << "Ingrese nombre completo: ";
@@ -391,6 +369,9 @@ void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& lista
     Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
     listaUsuarios.insertarFinal(nuevoCliente);
 
+    // Inserta el nuevo cliente en la tabla hash
+    tablaClientes.insert(*nuevoCliente);
+
     cout << "Cliente registrado con éxito.\n";
     generarFactura(*nuevoCliente, inventario, id);
 
@@ -401,6 +382,7 @@ void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& lista
 
     cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
 }
+
 
 void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, int& id) {
     system("cls");
@@ -569,10 +551,10 @@ int main() {
     Lista<Usuario*> listaUsuarios;
     Cola<Usuario*> colaUsuarios;
     ArbolBB<Cliente> arbol(imprimir);
-    HashTablaA tabla;
-    GestionDatos gestionDatos;
+    HashTablaA tablaclientes(30);
+    GestionDatos* gestionDatos = new GestionDatos();
 
-    gestionDatos.LecturaDatosArchivo(); // Leer datos desde el archivo al inicio
+    
 
     int opcion = 0;
     Administrador admin("admin123");
@@ -597,10 +579,11 @@ int main() {
             int subOpcion;
             cin >> subOpcion;
             if (subOpcion == 1) {
-                registrarCliente(listaUsuarios, listaReservaciones, listaReviews, id);
-                cout << "Cliente registrado con exito \n";
+                registrarCliente(listaUsuarios, listaReservaciones, listaReviews, tablaclientes, id);
+                 cout << "Cliente registrado con exito \n";
                 system("cls");
             }
+
             else if (subOpcion == 2) {
                 registrarClientePrescencial(colaUsuarios, id);
                 cout << "Cliente Encolado con exito \n";
@@ -625,7 +608,7 @@ int main() {
         case 4:
             system("cls");
             cout << "Usuarios registrados:\n";
-            listaUsuarios.mostrar();
+            gestionDatos->getClientes().mostrar();
 
             cout << "\nOrdenar Usuarios:\n";
             cout << "1.Ordenar por intercambio : \n";
@@ -705,7 +688,7 @@ int main() {
             break;
 
         case 10:
-            buscarClienteHashTable(tabla);
+            buscarClienteHashTable(tablaclientes);
             break;
 
         case 11:
@@ -721,16 +704,16 @@ int main() {
             break;
 
         case 14:
-            eliminarClienteArbolYHash(arbol, tabla);
+            eliminarClienteArbolYHash(arbol, tablaclientes);
             break;
 
         case 15:
-            mostrarTodosHashTable(tabla);
+            cout << "Mostrando todos los clientes/empleados en la tabla hash:\n";
+            gestionDatos->tablaclientes.DispAll();
             break;
-
         case 16:
-            gestionDatos.LecturaDatosArchivo();
-            cout << "Datos leídos desde el archivo.\n";
+            gestionDatos->LecturaDatosArchivo();
+            cout << "Datos leidos desde el archivo.\n";
             break;
 
         case 17:
