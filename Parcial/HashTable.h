@@ -12,10 +12,10 @@ using namespace std;
 class HashTablaA {
 private:
     vector<list<Cliente>> theLists;   // Tabla: vector cuyo cada elemento es una Lista de Nodos Hash(key, value)
-    int currentSize;    // Tamaño del vector
+    size_t currentSize;    // Tamaño del vector
 
 public:
-    explicit HashTablaA(int size = 30) : currentSize{ 0 }
+    explicit HashTablaA(size_t size = 30) : currentSize{ 0 }
     {
         theLists.resize(size);    // Resize al vector, para que tenga `size` elementos: `size` listas de Nodos Hash(key, value)
     }
@@ -49,7 +49,7 @@ public:
             cout << "Indice " << i << ": ";
             for (const auto& it : theLists[i]) {    // Recorremos la Lista de cada indice del vector    
                 cout << it.getNombreCompleto() << ",";
-                
+
             }
             cout << endl;
         }
@@ -57,7 +57,7 @@ public:
 
     void buscar(const string& key)
     {
-        int pos = myhash(key);
+        size_t pos = myhash(key);
 
         cout << "Buscando en el indice: " << pos << endl;
         for (const auto& it : theLists[pos]) {    // Recorremos la Lista de cada indice del vector    
@@ -68,7 +68,9 @@ public:
                     << ", Habitacion: " << it.getHabitacion()
                     << ", Tipo Alojamiento: " << it.getTipoAlojamiento()
                     << ", Lugar: " << it.getLugar()
-                    << ", Promocion: " << it.getPromocion() << endl;
+                    << ", Promocion: " << it.getPromocion()
+                    << ",Latitud"<<it.getLatitud()
+                    << ",Longitud" << it.getLongitud() << endl;
                 return;
             }
         }

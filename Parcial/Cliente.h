@@ -14,17 +14,21 @@ private:
     std::string tipoAlojamiento;
     std::string lugar;
     std::string promocion;
+    double latitud;
+    double longitud;
 
 public:
     // Constructor with default values
-    Cliente(int id = 0, std::string nombreCompleto = "", int edad = 0, int habitacion = 0, std::string tipoAlojamiento = "", std::string lugar = "", std::string promocion = "")
+    Cliente(int id = 0, std::string nombreCompleto = "", int edad = 0, int habitacion = 0, std::string tipoAlojamiento = "", std::string lugar = "", std::string promocion = "", double latitud = 0, double longitud = 0)
         : Usuario(id, nombreCompleto, "N/A"),
         nombreCompleto(nombreCompleto),
         edad(edad),
         habitacion(habitacion),
         tipoAlojamiento(tipoAlojamiento),
         lugar(lugar),
-        promocion(promocion) {}
+        promocion(promocion),
+        latitud(latitud),
+        longitud(longitud) {}
 
     std::string toString() const override {
         std::ostringstream ss;
@@ -55,6 +59,14 @@ public:
 
     std::string getPromocion() const { return promocion; }
     void setPromocion(const std::string& promocion) { this->promocion = promocion; }
+
+    double getLatitud() const { return latitud; }
+    void setLatitud(double latitud) { this->latitud = latitud; }
+
+    double getLongitud() const { return longitud; }
+    void setLongitud(double longitud) { this->longitud = longitud; }
+
+    int getId() const { return id; }
 };
 
 #endif

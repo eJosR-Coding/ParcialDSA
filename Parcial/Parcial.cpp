@@ -13,40 +13,36 @@
 #include "Arbol.hpp"
 #include "HashTable.h"
 #include "GestionDatos.h"
-
+#include "Grafos.hpp"
+#include <cstdlib>
+#include <ctime>
+#include "menu.h"
+#include <conio.h>
+#include <windows.h>
 using namespace System;
 using namespace std;
 
 
 
 
-void mostrarMenu() {
-    cout << "\n========================================\n";
-    cout << "===          Menu Cloudbeds          ===\n";
-    cout << "========================================\n\n";
-    cout << "1. Registrar Cliente\n";
-    cout << "2. Atender clientes de la cola\n";
-    cout << "3. Registrar Empleado\n";
-    cout << "4. Mostrar Usuarios\n";
-    cout << "5. Mostrar Reservas hasta la fecha\n";
-    cout << "6. Reseñas\n";
-    cout << "7. Mostrar primer cliente registrado\n";
-    cout << "8. Calcular suma de edades de los clientes\n";
-    cout << "9. Buscar Cliente en Árbol\n";
-    cout << "10. Buscar Cliente en HashTable\n";
-    cout << "11. Mostrar Clientes Ordenados\n";
-    cout << "12. Mostrar Clientes por Rango de Nombres\n";
-    cout << "13. Contar Clientes en Árbol\n";
-    cout << "14. Eliminar Cliente del Árbol y HashTable\n";
-    cout << "15. Mostrar Todos los Clientes/Empleados (HashTable)\n";
-    cout << "16. Leer Datos desde Archivo\n";
-    cout << "17. Salir\n";
-    cout << "========================================\n";   
-    cout << "Seleccione una opcion: ";
+void AnadirReviewsmain(Nodo<Cliente*>* nodoCliente, Lista<Resena*>& listaReviews) {
+    if (nodoCliente == nullptr) {
+        return;
+    }
+
+    Usuario* usuario = nodoCliente->valor;
+    Cliente* cliente = dynamic_cast<Cliente*>(usuario);
+
+    if (cliente != nullptr) {
+        string nombre = cliente->getNombreCompleto();
+        int habitacion = cliente->getHabitacion();
+        int rating = rand() % 10 + 1;
+        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombre, "Reseña sobre la habitación: " + std::to_string(habitacion), rating);
+        listaReviews.insertarFinal(nuevaReview);
+    }
+
+    AnadirReviewsmain(nodoCliente->siguiente, listaReviews);
 }
-
-
-
 int sumaEdadesRecursiva(Nodo<Usuario*>* nodoCliente) {
     if (nodoCliente == nullptr) {
         return 0;
@@ -81,12 +77,10 @@ int restaEdadesLambda(Nodo<Usuario*>* nodoCliente) {
     return totalResta;
 }
 
-
-
 void generarFactura(const Cliente& cliente, const Inventario& inventario, int facturaId) {
     cout << "\n*Factura*\n";
     cout << "Cliente: " << cliente.getNombreCompleto() << endl;
-    cout << "Habitacion: " << cliente.getHabitacion() << endl;
+    cout << "Habitación: " << cliente.getHabitacion() << endl;
     cout << "Tipo Alojamiento: " << cliente.getTipoAlojamiento() << endl;
     cout << "Lugar: " << cliente.getLugar() << endl;
     cout << "Promoción: " << cliente.getPromocion() << endl;
@@ -128,24 +122,19 @@ void generarFactura(const Cliente& cliente, const Inventario& inventario, int fa
 
     total -= descuentoTotal;
 
-    char deseaExtras;
-    cout << "¿Desea anadir jabon, champu y toalla? (si/no): ";
-    cin >> deseaExtras;
-    if (deseaExtras == 'si' || deseaExtras == 'Si') {
+    // Generar aleatoriamente si desea añadir jabón, champú y toalla
+    bool deseaExtras = rand() % 2;
+    if (deseaExtras) {
         total += 15;
     }
 
     cout << "Precio Alojamiento: $" << total << endl;
     cout << "Total: $" << total << endl;
 
-    cout << "¿Desea realizar el pago ahora? (si/no): ";
-    char deseaPagar;
-    cin >> deseaPagar;
-
-    if (deseaPagar == 's' || deseaPagar == 'S') {
-        cout << "Seleccione metodo de pago: \n1. Efectivo\n2. Tarjeta\n3. Transferencia\n";
-        int opcionMetodoPago;
-        cin >> opcionMetodoPago;
+    // Generar aleatoriamente si desea realizar el pago ahora
+    bool deseaPagar = rand() % 2;
+    if (deseaPagar) {
+        int opcionMetodoPago = rand() % 3 + 1; // Generar un número entre 1 y 3
 
         string metodoPago;
         switch (opcionMetodoPago) {
@@ -184,7 +173,6 @@ void buscarClienteHashTable(HashTablaA& tabla) {
     tabla.buscar(nombre);
 }
 
-
 void mostrarClientesOrdenados(ArbolBB<Cliente>& arbol) {
     cout << "Clientes ordenados alfabeticamente:\n";
     arbol.enOrden();
@@ -199,7 +187,7 @@ void mostrarClientesPorRango(ArbolBB<Cliente>& arbol) {
     getline(cin, max);
 
     Cliente clienteMin(0, min, 0, 0, "", "", "");
-    Cliente clienteMax(0, max, 0, 0, "", "", "");
+    Cliente clienteMax(0, max, 0, 0, 0, "", "");
     cout << "Clientes en el rango [" << min << " - " << max << "]:\n";
     arbol.Intervalo_Clientes(clienteMin, clienteMax);
 }
@@ -224,232 +212,98 @@ void eliminarClienteArbolYHash(ArbolBB<Cliente>& arbol, HashTablaA& tabla) {
     }
 }
 
-void registrarClienteEnEstructuras(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, ArbolBB<Cliente>& arbol, HashTablaA& tabla, int& id) {
+void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, int& id) {
     system("cls");
-    cout << "\n*Registro de Cliente*\n";
-    cout << "Ingrese nombre completo: ";
-    cin.ignore();
-    string nombreCompleto;
-    getline(cin, nombreCompleto);
+    cout << "\n*Registro de Clientes Aleatorios*\n";
 
-    cout << "Ingrese edad: ";
-    int edadTemporal;
-    cin >> edadTemporal;
-    while (edadTemporal <= 0 || edadTemporal >= 100) {
-        cout << "Edad inválida. Ingrese nuevamente: ";
-        cin >> edadTemporal;
+    vector<string> nombres = { "Ana Rodriguez", "Carlos Perez", "Maria Lopez", "Jose Martinez", "Lucia Fernandez",
+                              "Jorge Suarez", "Sofia Gonzalez", "Luis Ramirez", "Camila Torres", "Miguel Ruiz",
+                              "Elena Gutierrez", "Pedro Vasquez", "Laura Rojas" };
+    vector<int> edades = { 28, 34, 45, 50, 37, 32, 27, 42, 29, 38, 31, 47, 26 };
+    vector<string> habitaciones = { "205", "101", "303", "402", "201", "104", "204", "501", "305", "103", "203", "502", "105" };
+    vector<string> tiposAlojamiento = { "Casa de playa", "Departamento", "Casa de playa", "Departamento", "Casa de playa",
+                                       "Departamento", "Casa de playa", "Departamento", "Casa de playa", "Departamento",
+                                       "Casa de playa", "Departamento", "Casa de playa" };
+    vector<string> lugares = { "Casa Blanca", "El Refugio", "La Morada", "Vista Alegre", "La Colina",
+                              "El Mirador", "Jardines del Sol", "Los Pinos", "La Alameda", "El Bosque",
+                              "Las Flores", "Rincón del Cielo", "La Cascada" };
+    vector<string> promociones = { "Interbank", "BCP", "Interbank", "BCP", "Interbank",
+                                  "BCP", "Interbank", "BCP", "Interbank", "BCP",
+                                  "Interbank", "BCP", "Interbank" };
+
+    srand(time(0));  // Inicializa la semilla para números aleatorios
+
+    int numClientes;
+    cout << "Ingrese el número de clientes a registrar: ";
+    cin >> numClientes;
+
+    for (int i = 0; i < numClientes; i++) {
+        int idx = rand() % nombres.size(); // Seleccionar un índice aleatorio
+
+        string nombreCompleto = nombres[idx];
+        int edad = edades[idx];
+        string habitacion = habitaciones[idx];
+        string tipoAlojamiento = tiposAlojamiento[idx];
+        string lugar = lugares[idx];
+        string promocion = promociones[idx];
+
+        Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, std::stoi(habitacion), tipoAlojamiento, lugar, promocion);
+        listaUsuarios.insertarFinal(nuevoCliente);
+
+        cout << "Cliente registrado con éxito.\n";
+
+        // Aquí se asume que generarFactura y AnadirReviewsmain son funciones válidas que están definidas y funcionales en tu proyecto
+        // Ajusta esta parte según cómo estén definidas y cómo quieres que funcionen
+
+        // generarFactura(*nuevoCliente, Inventario(), id);  // Comentado temporalmente ya que Inventario no está definido aquí
+        // Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
+        // listaReservaciones.insertarFinal(nuevaReservacion);
+        // AnadirReviewsmain(listaUsuarios.getInicio(), listaReviews);
+
+        cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
     }
-    int edad = edadTemporal;
-
-    Inventario inventario;
-
-    cout << "Ingrese el número de habitación: ";
-    string habitacion;
-    cin >> habitacion;
-
-    cout << "Seleccione el tipo de alojamiento: " << endl;
-    cout << "1. Departamento\n";
-    cout << "2. Casa de playa\n";
-    cout << "3. Cabaña\n";
-    int opcionTipoAlojamiento;
-    cin >> opcionTipoAlojamiento;
-    while (opcionTipoAlojamiento < 1 || opcionTipoAlojamiento > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionTipoAlojamiento;
-    }
-    string tipoAlojamiento;
-    switch (opcionTipoAlojamiento) {
-    case 1: tipoAlojamiento = "Departamento"; break;
-    case 2: tipoAlojamiento = "Casa de playa"; break;
-    case 3: tipoAlojamiento = "Cabaña"; break;
-    default: tipoAlojamiento = "Indefinido";
-    }
-
-    cout << "Ingrese nombre del hospedaje: " << endl;
-    string lugar;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    getline(cin, lugar);
-
-    cout << "Seleccione la promoción: " << endl;
-    cout << "1. Interbank\n";
-    cout << "2. BCP\n";
-    cout << "3. Sin promoción\n";
-    int opcionPromocion;
-    cin >> opcionPromocion;
-    while (opcionPromocion < 1 || opcionPromocion > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionPromocion;
-    }
-    string promocion;
-    switch (opcionPromocion) {
-    case 1: promocion = "Interbank"; break;
-    case 2: promocion = "BCP"; break;
-    case 3: promocion = "Sin promoción"; break;
-    default: promocion = "Indefinida";
-    }
-
-    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
-    listaUsuarios.insertarFinal(nuevoCliente);
-
-    cout << "Cliente registrado con éxito.\n";
-    generarFactura(*nuevoCliente, inventario, id);
-
-    Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
-    listaReservaciones.insertarFinal(nuevaReservacion);
-
-    AnadirReviews(listaUsuarios.getInicio(), listaReviews);
-
-    cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
 }
-
-void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, HashTablaA& tablaClientes, int& id) {
-    system("cls");
-    cout << "\n*Registro de Cliente*\n";
-    cout << "Ingrese nombre completo: ";
-    cin.ignore();
-    string nombreCompleto;
-    getline(cin, nombreCompleto);
-
-    cout << "Ingrese edad: ";
-    int edadTemporal;
-    cin >> edadTemporal;
-    while (edadTemporal <= 0 || edadTemporal >= 100) {
-        cout << "Edad inválida. Ingrese nuevamente: ";
-        cin >> edadTemporal;
-    }
-    int edad = edadTemporal;
-
-    Inventario inventario;
-
-    cout << "Ingrese el número de habitación: ";
-    string habitacion;
-    cin >> habitacion;
-
-    cout << "Seleccione el tipo de alojamiento: " << endl;
-    cout << "1. Departamento\n";
-    cout << "2. Casa de playa\n";
-    cout << "3. Cabaña\n";
-    int opcionTipoAlojamiento;
-    cin >> opcionTipoAlojamiento;
-    while (opcionTipoAlojamiento < 1 || opcionTipoAlojamiento > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionTipoAlojamiento;
-    }
-    string tipoAlojamiento;
-    switch (opcionTipoAlojamiento) {
-    case 1: tipoAlojamiento = "Departamento"; break;
-    case 2: tipoAlojamiento = "Casa de playa"; break;
-    case 3: tipoAlojamiento = "Cabaña"; break;
-    default: tipoAlojamiento = "Indefinido";
-    }
-
-    cout << "Ingrese nombre del hospedaje: " << endl;
-    string lugar;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    getline(cin, lugar);
-
-    cout << "Seleccione la promoción: " << endl;
-    cout << "1. Interbank\n";
-    cout << "2. BCP\n";
-    cout << "3. Sin promoción\n";
-    int opcionPromocion;
-    cin >> opcionPromocion;
-    while (opcionPromocion < 1 || opcionPromocion > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionPromocion;
-    }
-    string promocion;
-    switch (opcionPromocion) {
-    case 1: promocion = "Interbank"; break;
-    case 2: promocion = "BCP"; break;
-    case 3: promocion = "Sin promoción"; break;
-    default: promocion = "Indefinida";
-    }
-
-    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
-    listaUsuarios.insertarFinal(nuevoCliente);
-
-    // Inserta el nuevo cliente en la tabla hash
-    tablaClientes.insert(*nuevoCliente);
-
-    cout << "Cliente registrado con éxito.\n";
-    generarFactura(*nuevoCliente, inventario, id);
-
-    Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
-    listaReservaciones.insertarFinal(nuevaReservacion);
-
-    AnadirReviews(listaUsuarios.getInicio(), listaReviews);
-
-    cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
-}
-
 
 void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, int& id) {
     system("cls");
-    cout << "\n*Registro de Usuario en Cola*\n";
-    cout << "Ingrese nombre completo: ";
-    cin.ignore();
-    string nombreCompleto;
-    getline(cin, nombreCompleto);
+    cout << "\n*Registro de Clientes Aleatorios en Cola*\n";
 
-    cout << "Ingrese edad: ";
-    int edadTemporal;
-    cin >> edadTemporal;
-    while (edadTemporal <= 0 || edadTemporal >= 100) {
-        cout << "Edad inválida. Ingrese nuevamente: ";
-        cin >> edadTemporal;
+    vector<string> nombres = { "Ana Rodriguez", "Carlos Perez", "Maria Lopez", "Jose Martinez", "Lucia Fernandez",
+                              "Jorge Suarez", "Sofia Gonzalez", "Luis Ramirez", "Camila Torres", "Miguel Ruiz",
+                              "Elena Gutierrez", "Pedro Vasquez", "Laura Rojas" };
+    vector<int> edades = { 28, 34, 45, 50, 37, 32, 27, 42, 29, 38, 31, 47, 26 };
+    vector<string> habitaciones = { "205", "101", "303", "402", "201", "104", "204", "501", "305", "103", "203", "502", "105" };
+    vector<string> tiposAlojamiento = { "Casa de playa", "Departamento", "Casa de playa", "Departamento", "Casa de playa",
+                                       "Departamento", "Casa de playa", "Departamento", "Casa de playa", "Departamento",
+                                       "Casa de playa", "Departamento", "Casa de playa" };
+    vector<string> lugares = { "Casa Blanca", "El Refugio", "La Morada", "Vista Alegre", "La Colina",
+                              "El Mirador", "Jardines del Sol", "Los Pinos", "La Alameda", "El Bosque",
+                              "Las Flores", "Rincón del Cielo", "La Cascada" };
+    vector<string> promociones = { "Interbank", "BCP", "Interbank", "BCP", "Interbank",
+                                  "BCP", "Interbank", "BCP", "Interbank", "BCP",
+                                  "Interbank", "BCP", "Interbank" };
+
+    srand(static_cast<unsigned int>(time(0)));  // Inicializa la semilla para números aleatorios
+
+    int numClientes;
+    cout << "Ingrese el número de clientes a registrar: ";
+    cin >> numClientes;
+
+    for (int i = 0; i < numClientes; i++) {
+        int idx = rand() % nombres.size(); // Seleccionar un índice aleatorio
+
+        string nombreCompleto = nombres[idx];
+        int edad = edades[idx];
+        int habitacion = stoi(habitaciones[idx]);
+        string tipoAlojamiento = tiposAlojamiento[idx];
+        string lugar = lugares[idx];
+        string promocion = promociones[idx];
+
+        Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, habitacion, tipoAlojamiento, lugar, promocion);
+        colaUsuarios.encolar(nuevoCliente);
+
+        cout << "Cliente registrado en la cola con éxito.\n";
     }
-    int edad = edadTemporal;
-
-    cout << "Ingrese el número de habitación: ";
-    string habitacion;
-    cin >> habitacion;
-
-    cout << "Seleccione el tipo de alojamiento: " << endl;
-    cout << "1. Departamento\n";
-    cout << "2. Casa de playa\n";
-    cout << "3. Cabaña\n";
-    int opcionTipoAlojamiento;
-    cin >> opcionTipoAlojamiento;
-    while (opcionTipoAlojamiento < 1 || opcionTipoAlojamiento > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionTipoAlojamiento;
-    }
-    string tipoAlojamiento;
-    switch (opcionTipoAlojamiento) {
-    case 1: tipoAlojamiento = "Departamento"; break;
-    case 2: tipoAlojamiento = "Casa de playa"; break;
-    case 3: tipoAlojamiento = "Cabaña"; break;
-    default: tipoAlojamiento = "Indefinido";
-    }
-
-    cout << "Ingrese nombre del hospedaje: " << endl;
-    string lugar;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    getline(cin, lugar);
-
-    cout << "Seleccione la promoción: " << endl;
-    cout << "1. Interbank\n";
-    cout << "2. BCP\n";
-    cout << "3. Sin promoción\n";
-    int opcionPromocion;
-    cin >> opcionPromocion;
-    while (opcionPromocion < 1 || opcionPromocion > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionPromocion;
-    }
-    string promocion;
-    switch (opcionPromocion) {
-    case 1: promocion = "Interbank"; break;
-    case 2: promocion = "BCP"; break;
-    case 3: promocion = "Sin promoción"; break;
-    default: promocion = "Indefinida";
-    }
-
-    Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, stoi(habitacion), tipoAlojamiento, lugar, promocion);
-    colaUsuarios.encolar(nuevoCliente);
-
-    cout << "Usuario registrado en la cola con éxito.\n";
 }
 
 void mostrarInfoCliente(Usuario* Usuario) {
@@ -471,77 +325,85 @@ void atenderClientesDeCola(Cola<Usuario*>& colaUsuarios, void (*mostrarInformaci
 
 void registrarEmpleado(Lista<Usuario*>& listaUsuarios, int& id) {
     system("cls");
-    cout << "\n*Registro de Empleado*\n";
-    cout << "Ingrese nombre completo: ";
-    cin.ignore();
-    string nombreCompleto;
-    getline(cin, nombreCompleto);
+    cout << "\n*Registro de Empleados Aleatorios*\n";
 
-    cout << "Ingrese edad: ";
-    int edadTemporal;
-    cin >> edadTemporal;
-    while (edadTemporal <= 0 || edadTemporal <= 100) {
-        cout << "Edad inválida. Ingrese nuevamente: ";
-        cin >> edadTemporal;
-    }
-    int edad = edadTemporal;
+    vector<string> nombres = { "Juan Perez", "Pedro Gomez", "Maria Lopez", "Ana Martinez", "Luis Garcia", "Elena Sanchez", "Carlos Ramirez", "Lucia Torres" };
+    vector<int> edades = { 25, 30, 35, 40, 45, 50, 55, 60 };
+    vector<string> lugares = { "Hotel Central", "Resort Playa", "Cabañas del Sol", "Hostal Mar" };
+    vector<string> tiposAlojamiento = { "Departamento", "Casa de playa", "Cabaña" };
+    vector<string> departamentos = { "Limpieza", "Recepción", "Servicios" };
 
-    Inventario inventario;
+    srand(static_cast<unsigned int>(time(0)));  // Inicializa la semilla para números aleatorios
 
-    cout << "Seleccione el tipo de alojamiento: " << endl;
-    cout << "1. Departamento\n";
-    cout << "2. Casa de playa\n";
-    cout << "3. Cabaña\n";
-    int opcionTipoAlojamiento;
-    cin >> opcionTipoAlojamiento;
-    while (opcionTipoAlojamiento < 1 || opcionTipoAlojamiento > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opcionTipoAlojamiento;
-    }
-    string tipoAlojamiento;
-    switch (opcionTipoAlojamiento) {
-    case 1: tipoAlojamiento = "Departamento"; break;
-    case 2: tipoAlojamiento = "Casa de playa"; break;
-    case 3: tipoAlojamiento = "Cabaña"; break;
-    default: tipoAlojamiento = "Indefinido";
-    }
+    int numEmpleados;
+    cout << "Ingrese el número de empleados a registrar: ";
+    cin >> numEmpleados;
 
-    cout << "Ingrese el departamento de trabajo: ";
-    cout << "1. Limpieza\n";
-    cout << "2. Recepción\n";
-    cout << "3. Servicios\n";
-    int opciondepartamentotrabajo;
-    cin >> opciondepartamentotrabajo;
-    while (opciondepartamentotrabajo < 1 || opciondepartamentotrabajo > 3) {
-        cout << "Opción inválida. Ingrese nuevamente: ";
-        cin >> opciondepartamentotrabajo;
-    }
-    string departamentotrabajo;
-    switch (opciondepartamentotrabajo) {
-    case 1: departamentotrabajo = "limpieza"; break;
-    case 2: departamentotrabajo = "recepción"; break;
-    case 3: departamentotrabajo = "servicios"; break;
-    default: departamentotrabajo = "Indefinido";
+    for (int i = 0; i < numEmpleados; i++) {
+        int idxNombre = rand() % nombres.size(); // Seleccionar un índice aleatorio
+        int idxEdad = rand() % edades.size();
+        int idxLugar = rand() % lugares.size();
+        int idxTipoAlojamiento = rand() % tiposAlojamiento.size();
+        int idxDepartamento = rand() % departamentos.size();
+
+        string nombreCompleto = nombres[idxNombre];
+        int edad = edades[idxEdad];
+        string tipoAlojamiento = tiposAlojamiento[idxTipoAlojamiento];
+        string lugarTrabajo = lugares[idxLugar];
+        string departamento = departamentos[idxDepartamento];
+
+        // Generar una contraseña aleatoria
+        string contrasena;
+        for (int j = 0; j < 8; ++j) { // Contraseña de 8 caracteres
+            contrasena += static_cast<char>(33 + rand() % (126 - 33 + 1)); // Caracteres imprimibles en ASCII
+        }
+
+        Empleado* nuevoEmpleado = new Empleado(id++, nombreCompleto, edad, tipoAlojamiento, lugarTrabajo, departamento, contrasena);
+        listaUsuarios.insertarFinal(nuevoEmpleado);
     }
 
-    cout << "Ingrese nombre del lugar de trabajo: " << endl;
-    string lugartrabajo;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    getline(cin, lugartrabajo);
-
-    cout << "Ingrese la contraseña: ";
-    string contrasena;
-    cin >> contrasena;
-
-    Empleado* nuevoEmpleado = new Empleado(id++, nombreCompleto, edad, tipoAlojamiento, lugartrabajo, departamentotrabajo, contrasena);
-    listaUsuarios.insertarFinal(nuevoEmpleado);
-    cout << "Empleado registrado con éxito.\n";
+    cout << "Empleados registrados con éxito.\n";
 
     system("cls");
     listaUsuarios.mostrar();
 }
 
+/// GRAFOS
+void registrarConexion(CGrafo<Cliente>& grafo) { // Cambiar int por Cliente
+    int id1, id2;
+    double distancia;
+    cout << "Ingrese ID del primer cliente: ";
+    cin >> id1;
+    cout << "Ingrese ID del segundo cliente: ";
+    cin >> id2;
+    cout << "Ingrese la distancia entre los dos clientes: ";
+    cin >> distancia;
 
+    grafo.adicionarArco(id1, id2, distancia);
+    grafo.adicionarArco(id2, id1, distancia);
+
+    cout << "Conexión registrada exitosamente.\n";
+}
+
+
+void mostrarConexiones(CGrafo<Cliente>& grafo) { 
+    grafo.mostrarGrafo();
+}
+
+
+void generarConexionesAleatorias(CGrafo<Cliente>& grafo) {
+    srand(static_cast<unsigned int>(time(0)));
+    int cantidad = grafo.cantidadVertices();
+
+    for (int i = 0; i < cantidad; ++i) {
+        for (int j = i + 1; j < cantidad; ++j) {
+            double distancia = (rand() % 100) + 1;  // Distancia aleatoria entre 1 y 100
+            grafo.adicionarArco(i, j, distancia);
+            grafo.adicionarArco(j, i, distancia);
+        }
+    }
+    cout << "Conexiones aleatorias generadas exitosamente.\n";
+}
 int main() {
     ServerStatus servidor;
     servidor.encender();
@@ -550,11 +412,7 @@ int main() {
     Lista<Resena*> listaReviews;
     Lista<Usuario*> listaUsuarios;
     Cola<Usuario*> colaUsuarios;
-    ArbolBB<Cliente> arbol(imprimir);
-    HashTablaA tablaclientes(30);
-    GestionDatos* gestionDatos = new GestionDatos();
-
-    
+    GestionDatos gestionDatos; // Instancia de GestionDatos
 
     int opcion = 0;
     Administrador admin("admin123");
@@ -567,7 +425,7 @@ int main() {
     int id = 1;
 
     do {
-        mostrarMenu();
+        menuSelector(); 
         cin >> opcion;
 
         switch (opcion) {
@@ -579,11 +437,10 @@ int main() {
             int subOpcion;
             cin >> subOpcion;
             if (subOpcion == 1) {
-                registrarCliente(listaUsuarios, listaReservaciones, listaReviews, tablaclientes, id);
-                 cout << "Cliente registrado con exito \n";
+                registrarCliente(listaUsuarios, listaReservaciones, listaReviews, id);
+                cout << "Cliente registrado con exito \n";
                 system("cls");
             }
-
             else if (subOpcion == 2) {
                 registrarClientePrescencial(colaUsuarios, id);
                 cout << "Cliente Encolado con exito \n";
@@ -594,47 +451,53 @@ int main() {
                 system("cls");
             }
             break;
-
         case 2:
             atenderClientesDeCola(colaUsuarios, mostrarInfoCliente);
             system("cls");
             break;
-
         case 3:
             registrarEmpleado(listaUsuarios, id);
             system("cls");
             break;
-
         case 4:
             system("cls");
             cout << "Usuarios registrados:\n";
-            gestionDatos->getClientes().mostrar();
-
+            listaUsuarios.mostrar();
             cout << "\nOrdenar Usuarios:\n";
-            cout << "1.Ordenar por intercambio : \n";
-            cout << "2. Ordenar por divide y vencerás:\n";
+            cout << "1. Ordenar por intercambio\n";
+            cout << "2. Ordenar por Quicksort\n";
+            cout << "3. Ordenar por Mergesort\n";
+            cout << "4. Ordenar por Heapsort\n";
             int subOpcion2;
             cin >> subOpcion2;
-            if (subOpcion2 == 1) {
+            switch (subOpcion2) {
+            case 1:
                 listaUsuarios.ordenarByIntercambio();
                 listaUsuarios.mostrar();
-            }
-            else if (subOpcion2 == 2) {
-                listaUsuarios.ordenarByQuicksort();
+                break;
+            case 2:
+                listaUsuarios.ordenarByQuickSort();
                 listaUsuarios.mostrar();
-            }
-            else {
+                break;
+            case 3:
+                listaUsuarios.ordenarByMergeSort();
+                listaUsuarios.mostrar();
+                break;
+            case 4:
+                listaUsuarios.ordenarByHeapSort();
+                listaUsuarios.mostrar();
+                break;
+            default:
                 cout << "Opción no válida.\n";
                 system("cls");
+                break;
             }
             break;
-
         case 5:
             system("cls");
             cout << "Reservaciones hasta la fecha: \n";
             Reservacion::mostrarReservaciones(listaReservaciones);
             break;
-
         case 6:
             system("cls");
             cout << "Reseñas hasta la fecha: " << endl;
@@ -649,7 +512,6 @@ int main() {
                 cout << "No hay reseñas disponibles.\n";
             }
             break;
-
         case 7:
             system("cls");
             try {
@@ -660,9 +522,7 @@ int main() {
                 cout << e.what() << endl;
             }
             break;
-
         case 8:
-        {
             system("cls");
             cout << "SUMAR O RESTAR EDADES\n";
             cout << "1. Sumar edades \n";
@@ -681,50 +541,73 @@ int main() {
                 cout << "Opción no válida.\n";
             }
             break;
-        }
-
         case 9:
-            buscarClienteArbol(arbol);
+            // Submenú para mostrar clientes en el árbol en diferentes órdenes
+            system("cls");
+            cout << "Mostrar Clientes en el Arbol:\n";
+            cout << "1. En orden\n";
+            cout << "2. Preorden\n";
+            cout << "3. Postorden\n";
+            int subOpcion4;
+            cin >> subOpcion4;
+            switch (subOpcion4) {
+            case 1:
+                gestionDatos.mostrarArbolEnOrden();
+                break;
+            case 2:
+                gestionDatos.mostrarArbolPreOrden();
+                break;
+            case 3:
+                gestionDatos.mostrarArbolPostOrden();
+                break;
+            default:
+                cout << "Opción no válida.\n";
+            }
             break;
-
         case 10:
-            buscarClienteHashTable(tablaclientes);
+            buscarClienteArbol(*gestionDatos.getArbol());
             break;
-
         case 11:
-            mostrarClientesOrdenados(arbol);
+            buscarClienteHashTable(gestionDatos.getTablaClientes());
             break;
-
         case 12:
-            mostrarClientesPorRango(arbol);
+            mostrarClientesOrdenados(*gestionDatos.getArbol());
             break;
-
         case 13:
-            contarClientesArbol(arbol);
+            mostrarClientesPorRango(*gestionDatos.getArbol());
             break;
-
         case 14:
-            eliminarClienteArbolYHash(arbol, tablaclientes);
+            contarClientesArbol(*gestionDatos.getArbol());
             break;
-
         case 15:
-            cout << "Mostrando todos los clientes/empleados en la tabla hash:\n";
-            gestionDatos->tablaclientes.DispAll();
+            eliminarClienteArbolYHash(*gestionDatos.getArbol(), gestionDatos.getTablaClientes());
             break;
         case 16:
-            gestionDatos->LecturaDatosArchivo();
+            cout << "Mostrando todos los clientes/empleados en la tabla hash:\n";
+            gestionDatos.getTablaClientes().DispAll();
+            break;
+        case 17:
+            gestionDatos.LecturaDatosArchivo();
             cout << "Datos leidos desde el archivo.\n";
             break;
-
-        case 17:
+        case 18:
+            cout << "Generando conexiones aleatorias..." << endl;
+            gestionDatos.generarConexionesAleatorias();
+            break;
+        case 19:
+            cout << "Mostrando conexiones en el grafo..." << endl;
+            gestionDatos.mostrarGrafo();
+            break;
+        case 20:
             cout << "Saliendo del sistema.\n";
             servidor.apagar();
             break;
-
         default:
             cout << "Opción no válida. Por favor intente nuevamente.\n";
         }
-    } while (opcion != 17);
+    } while (opcion != 20);
 
     return 0;
 }
+
+

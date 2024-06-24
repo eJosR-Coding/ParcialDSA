@@ -7,16 +7,16 @@
 class Promocion {
 private:
     int id;
-    string descripcion;
-    string promocion;
+    std::string descripcion;
+    std::string promocion;
 public:
     static float promociónINTERBANK(float total) {
-        return total * 0.6;
+        return static_cast<float>(total * 0.6);
     }
 
     static float promociónBCP(float total) {
-        return total * 0.8; // Se aplica un descuento del 20%
+        return static_cast<float>(total * 0.8); // Se aplica un descuento del 20%
     }
 };
 
-#endif
+#endif // PROMOCION_H

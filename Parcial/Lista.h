@@ -4,7 +4,7 @@
 
 #include "Nodo.h"
 #include "Dependencies.h"
-#include "Usuario.h"
+#include "Cliente.h"
 #include <stdexcept>
 #include <iostream>
 
@@ -14,18 +14,8 @@ private:
     Nodo<T>* inicio;
     Nodo<T>* fin;
     int longitud;
-   
 
-public:
-    Lista() : inicio(nullptr), fin(nullptr), longitud(0) {}
-    ~Lista() {
-        vaciar();
-    }
-
-    Nodo<T>* obtenerUltimoNodo() const {
-        return fin;
-    }
-    Nodo<T>* particionar(Nodo<T>* inicio, Nodo<T>* fin) {
+    static Nodo<T>* particionar(Nodo<T>* inicio, Nodo<T>* fin) {
         T pivot = fin->valor;
         Nodo<T>* i = inicio->anterior;
 
@@ -36,8 +26,101 @@ public:
             }
         }
         i = (i == nullptr) ? inicio : i->siguiente;
-        swap(i->valor, fin->valor);
+        std::swap(i->valor, fin->valor);
         return i;
+    }
+
+    static Nodo<T>* merge(Nodo<T>* a, Nodo<T>* b) {
+        Nodo<T>* result = nullptr;
+
+        if (a == nullptr) {
+            return b;
+        }
+        else if (b == nullptr) {
+            return a;
+        }
+
+        if (*(a->valor) <= *(b->valor)) {
+            result = a;
+            result->siguiente = merge(a->siguiente, b);
+        }
+        else {
+            result = b;
+            result->siguiente = merge(a, b->siguiente);
+        }
+        return result;
+    }
+
+    static void split(Nodo<T>* source, Nodo<T>** frontRef, Nodo<T>** backRef) {
+        if (source == nullptr || source->siguiente == nullptr) {
+            *frontRef = source;
+            *backRef = nullptr;
+            return;
+        }
+
+        Nodo<T>* fast = source->siguiente;
+        Nodo<T>* slow = source;
+
+        while (fast != nullptr) {
+            fast = fast->siguiente;
+            if (fast != nullptr) {
+                slow = slow->siguiente;
+                fast = fast->siguiente;
+            }
+        }
+
+        *frontRef = source;
+        *backRef = slow->siguiente;
+        slow->siguiente = nullptr;
+    }
+
+    static void heapify(Nodo<T>* nodo, int n, int i) {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        Nodo<T>* largestNode = nodoEnPosicion(nodo, largest);
+        Nodo<T>* leftNode = (left < n) ? nodoEnPosicion(nodo, left) : nullptr;
+        Nodo<T>* rightNode = (right < n) ? nodoEnPosicion(nodo, right) : nullptr;
+
+        if (leftNode != nullptr && *(leftNode->valor) > *(largestNode->valor)) {
+            largest = left;
+            largestNode = leftNode;
+        }
+
+        if (rightNode != nullptr && *(rightNode->valor) > *(largestNode->valor)) {
+            largest = right;
+            largestNode = rightNode;
+        }
+
+        if (largest != i) {
+            Nodo<T>* iNode = nodoEnPosicion(nodo, i);
+            std::swap(iNode->valor, largestNode->valor);
+            heapify(nodo, n, largest);
+        }
+    }
+
+    static Nodo<T>* nodoEnPosicion(Nodo<T>* inicio, int index) {
+        Nodo<T>* temp = inicio;
+        for (int i = 0; i < index; i++) {
+            if (temp == nullptr) { // Añadir verificación
+                throw std::out_of_range("Índice fuera de los límites de la lista");
+            }
+            temp = temp->siguiente;
+        }
+        return temp;
+    }
+
+    static Nodo<T>* obtenerMax(Nodo<T>* inicio) {
+        Nodo<T>* maxNode = inicio;
+        Nodo<T>* temp = inicio->siguiente;
+        while (temp != nullptr) {
+            if (*(temp->valor) > *(maxNode->valor)) {
+                maxNode = temp;
+            }
+            temp = temp->siguiente;
+        }
+        return maxNode;
     }
 
     void quickSort(Nodo<T>* inicio, Nodo<T>* fin) {
@@ -47,6 +130,46 @@ public:
             quickSort(p->siguiente, fin);
         }
     }
+
+    void mergeSort(Nodo<T>** headRef) {
+        Nodo<T>* head = *headRef;
+        if ((head == nullptr) || (head->siguiente == nullptr)) {
+            return;
+        }
+
+        Nodo<T>* a;
+        Nodo<T>* b;
+        split(head, &a, &b);
+
+        mergeSort(&a);
+        mergeSort(&b);
+
+        *headRef = merge(a, b);
+    }
+
+    void heapSort(Nodo<T>*& inicio, int longitud) {
+        for (int i = longitud / 2 - 1; i >= 0; i--) {
+            heapify(inicio, longitud, i);
+        }
+
+        for (int i = longitud - 1; i > 0; i--) {
+            Nodo<T>* rootNode = nodoEnPosicion(inicio, 0);
+            Nodo<T>* endNode = nodoEnPosicion(inicio, i);
+            std::swap(rootNode->valor, endNode->valor);
+            heapify(inicio, i, 0);
+        }
+    }
+
+public:
+    Lista() : inicio(nullptr), fin(nullptr), longitud(0) {}
+    ~Lista() {
+        vaciar();
+    }
+
+    Nodo<T>* obtenerUltimoNodo() const {
+        return fin;
+    }
+
     void insertarInicio(T valor) {
         Nodo<T>* nuevo = new Nodo<T>(valor, nullptr, inicio);
         if (inicio != nullptr) {
@@ -148,10 +271,6 @@ public:
         return inicio;
     }
 
-    void ordenarByQuicksort() {
-        quickSort(inicio, fin);
-    }
-
     void ordenarByIntercambio() {
         Nodo<T>* nodo_i = inicio;
         while (nodo_i != nullptr) {
@@ -170,6 +289,18 @@ public:
             }
             nodo_i = nodo_i->siguiente;
         }
+    }
+
+    void ordenarByQuickSort() {
+        quickSort(inicio, obtenerUltimoNodo());
+    }
+
+    void ordenarByMergeSort() {
+        mergeSort(&inicio);
+    }
+
+    void ordenarByHeapSort() {
+        heapSort(inicio, longitud);
     }
 };
 

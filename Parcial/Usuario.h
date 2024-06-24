@@ -28,7 +28,10 @@ public:
     bool operator<=(const Usuario& otro) const {
         return nombreUsuario <= otro.nombreUsuario;
     }
-};
 
+    bool operator>(const Usuario& otro) const {
+        return nombreUsuario > otro.nombreUsuario;
+    }
+};
 
 #endif

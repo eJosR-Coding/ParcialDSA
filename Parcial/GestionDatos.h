@@ -4,11 +4,15 @@
 #include "HashTable.h"
 #include <iostream>
 #include <conio.h>
-#include <fstream> //Gestion de Archivo
-#include <sstream> //stream
+#include <fstream>
+#include <sstream>
 #include "Cliente.h"
 #include "Dependencies.h"
-
+#include "Grafos.hpp"
+#include "Lista.h"
+#include "Cola.h"
+#include "Reservacion.h"
+#include "Resena.h"
 using namespace std;
 
 void imprimir(Cliente cliente) {
@@ -18,30 +22,43 @@ void imprimir(Cliente cliente) {
 class GestionDatos {
 private:
     ArbolBB<Cliente>* arbol;
-    string nombre_rchivo;
-    Lista<Reservacion*> listaReservaciones;
-    Lista<Resena*> listaReviews;
-    Lista<Cliente*> listasClientes;
+    string nombre_archivo;
+   
     Cola<Usuario*> colaUsuarios;
+    CGrafo<Cliente> grafo;
+
 public:
     HashTablaA tablaclientes;
     GestionDatos();
+
     void LecturaDatosArchivo();
     void Intervalo_Clientes();
     void Generar_Arbol();
     string buscar_Cliente(string nombre);
     void GenerarListaPreOrden();
-    Lista<Cliente*>  getClientes() { return listasClientes; }
+    ArbolBB<Cliente>* getArbol() { return arbol; }
+    HashTablaA& getTablaClientes() { return tablaclientes; }
     void Eliminar_Cliente(string nombre);
+
+    // Métodos públicos para interactuar con el grafo
+    void mostrarGrafo() { grafo.mostrarGrafo(); }
+    void generarConexionesAleatorias() { grafo.generarConexionesAleatorias(); }
+    void adicionarVerticeGrafo(Cliente cliente) { grafo.adicionarVertice(cliente); }
+    CGrafo<Cliente>& getGrafo() { return grafo; } // Método para obtener una referencia al grafo
+
+   
+    // Métodos para mostrar el árbol
+    void mostrarArbolEnOrden() { arbol->enOrden(); }
+    void mostrarArbolPreOrden() { arbol->preOrden(); }
+    void mostrarArbolPostOrden() { arbol->postOrden(); }
 };
 
 GestionDatos::GestionDatos() {
-    nombre_rchivo = "ClienteArchivo.csv";
+    nombre_archivo = "ClienteArchivoActualizado.csv";
     arbol = new ArbolBB<Cliente>(imprimir);
     tablaclientes = HashTablaA();
-
-
 }
+
 void AnadirReviews(Nodo<Cliente*>* nodoCliente, Lista<Resena*>& listaReviews) {
     if (nodoCliente == nullptr) {
         return;
@@ -60,6 +77,7 @@ void AnadirReviews(Nodo<Cliente*>* nodoCliente, Lista<Resena*>& listaReviews) {
 
     AnadirReviews(nodoCliente->siguiente, listaReviews);
 }
+
 void AnadirReviews(Nodo<Usuario*>* nodoCliente, Lista<Resena*>& listaReviews) {
     if (nodoCliente == nullptr) {
         return;
@@ -81,7 +99,7 @@ void AnadirReviews(Nodo<Usuario*>* nodoCliente, Lista<Resena*>& listaReviews) {
 
 void GestionDatos::LecturaDatosArchivo() {
     ifstream archIN;
-    archIN.open(nombre_rchivo, ios::in); // Open file for reading
+    archIN.open(nombre_archivo, ios::in); // Open file for reading
 
     if (!archIN.is_open()) {
         cout << "Error: No se pudo abrir el archivo !!!" << endl;
@@ -99,8 +117,9 @@ void GestionDatos::LecturaDatosArchivo() {
     while (getline(archIN, linea)) {
         stringstream stream(linea); // Convert line to stringstream
 
-        string col1, col4, col5, col6;
+        string col1, col4, col5, col6, col7, col8;
         int col2, col3;
+        double col7Double, col8Double;
 
         getline(stream, col1, delimitador); // NombreCompleto
         string col2Str; // edad
@@ -112,40 +131,32 @@ void GestionDatos::LecturaDatosArchivo() {
         getline(stream, col4, delimitador); // tipoAlojamiento
         getline(stream, col5, delimitador); // lugar
         getline(stream, col6, delimitador); // promocion
+        getline(stream, col7, delimitador); // latitud
+        col7Double = stod(col7);
+        getline(stream, col8, delimitador); // longitud
+        col8Double = stod(col8);
 
         // Create a new Cliente object
-
         Cliente* cliente = new Cliente(id++, col1, col2, col3, col4, col5, col6);
-        Cliente* clientelista = new Cliente(id++, col1, col2, col3, col4, col5, col6);
-        Cliente* clienteHash = new Cliente(id++, col1, col2, col3, col4, col5, col6);
+        cliente->setLatitud(col7Double);
+        cliente->setLongitud(col8Double);
 
-        // Insert the client into the tree
+        grafo.adicionarVertice(*cliente);
+
+        // Insert the client into the tree and hash table
         arbol->insertar(*cliente);
-        
+        tablaclientes.insert(*cliente);
 
-        // Insert the client into the hash table
-        tablaclientes.insert(*clienteHash);
-
-
-        // Insert the client into the list
-        listasClientes.insertarFinal(clientelista);
-        cout << "Cliente insertado en la lista: " << clientelista->getNombreCompleto() << endl;
-
-        // Create a new reservation
-        Reservacion* nuevaReservacion2 = new Reservacion(col1, to_string(col3));
-        listaReservaciones.insertarFinal(nuevaReservacion2);
-
-        // Add reviews (assuming AnadirReviews is defined somewhere)
-        AnadirReviews(listasClientes.getInicio(), listaReviews);
-        cout << "Reviews añadidas para: " << cliente->getNombreCompleto() << endl;
+        cout << "Cliente insertado :d: " << cliente->getNombreCompleto() << endl;
     }
 
     // Close the file
     archIN.close();
 }
 
-
-
+void GestionDatos::GenerarListaPreOrden() {
+    arbol->preOrden();
+}
 
 void GestionDatos::Generar_Arbol() {
     arbol->imprimirArbol();
@@ -155,6 +166,7 @@ void GestionDatos::Intervalo_Clientes() {
     arbol->Intervalo_Clientes(Cliente(0, "R", 0, 0, "", "", ""), Cliente(0, "S", 0, 0, "", "", ""));
 }
 
+
 string GestionDatos::buscar_Cliente(string nombre) {
     Cliente cliente(0, nombre, 0, 0, "", "", "");
     if (arbol->buscar(cliente)) {
@@ -163,10 +175,6 @@ string GestionDatos::buscar_Cliente(string nombre) {
     else {
         return "Cliente no encontrado";
     }
-}
-
-void GestionDatos::GenerarListaPreOrden() {
-    arbol->preOrden();
 }
 
 void GestionDatos::Eliminar_Cliente(string nombre) {
