@@ -16,14 +16,103 @@
 #include "Grafos.hpp"
 #include <cstdlib>
 #include <ctime>
-#include "menu.h"
-#include <conio.h>
-#include <windows.h>
 using namespace System;
 using namespace std;
 
+void print_title() {
+    cout << R"(
 
+          _______  _        _______           ______   ______   _______  ______   _______ 
+         (  ____ \( \      (  ___  )|\     /|(  __  \ (  ___ \ (  ____ \(  __  \ (  ____ \
+         | (    \/| (      | (   ) || )   ( || (  \  )| (   ) )| (    \/| (  \  )| (    \/
+         | |      | |      | |   | || |   | || |   ) || (__/ / | (__    | |   ) || (_____ 
+         | |      | |      | |   | || |   | || |   | ||  __ (  |  __)   | |   | |(_____  )
+         | |      | |      | |   | || |   | || |   ) || (  \ \ | (      | |   ) |      ) |
+         | (____/\| (____/\| (___) || (___) || (__/  )| )___) )| (____/\| (__/  )/\____) |
+         (_______/(_______/(_______)(_______)(______/ |/ \___/ (_______/(______/ \_______)
+                                                                                          
+    )" << endl;
+}
+void mostrarMenu() {
+    print_title();
+    cout << "1. Registrar Cliente\n";
+    cout << "2. Atender clientes de la cola\n";
+    cout << "3. Registrar Empleado\n";
+    cout << "4. Mostrar Usuarios\n";
+    cout << "5. Mostrar Reservas hasta la fecha\n";
+    cout << "6. Reseñas\n";
+    cout << "7. Mostrar primer cliente registrado\n";
+    cout << "8. Calcular suma de edades de los clientes\n";
+    cout << "9. Mostrar Clientes en el Arbol\n";
+    cout << "10. Buscar Cliente en Árbol\n";
+    cout << "11. Buscar Cliente en HashTable\n";
+    cout << "12. Mostrar Clientes Ordenados\n";
+    cout << "13. Mostrar Clientes por Rango de Nombres\n";
+    cout << "14. Contar Clientes en Árbol\n";
+    cout << "15. Eliminar Cliente del Árbol y HashTable\n";
+    cout << "16. Mostrar Todos los Clientes/Empleados (HashTable)\n";
+    cout << "17. Leer Datos desde Archivo\n";
+    cout << "18. Generar Conexiones Aleatorias\n";
+    cout << "19. Mostrar Conexiones entre Clientes\n";
+    cout << "20. Encontrar camino más corto entre dos clientes\n";
+    cout << "21. Salir\n";
+    cout << "========================================\n";
+    cout << "Seleccione una opcion: ";
+}
 
+void buscarCaminoMasCortoEntreUsuarios(GestionDatos& gestionDatos) {
+    string nombre1, nombre2;
+    cout << "Distancia más corta entre:\n";
+    cout << "Nombre de usuario 1: ";
+    cin.ignore();
+    getline(cin, nombre1);
+    cout << "Nombre de usuario 2: ";
+    getline(cin, nombre2);
+
+    int id1 = -1, id2 = -1;
+    CGrafo<Cliente>& grafo = gestionDatos.getGrafo();
+
+    for (int i = 0; i < grafo.cantidadVertices(); ++i) {
+        if (grafo.obtenerVertice(i).getNombreCompleto() == nombre1) {
+            id1 = i;
+        }
+        if (grafo.obtenerVertice(i).getNombreCompleto() == nombre2) {
+            id2 = i;
+        }
+    }
+
+    if (id1 == -1 || id2 == -1) {
+        cout << "Uno o ambos usuarios no fueron encontrados.\n";
+        return;
+    }
+
+    vector<double> dist;
+    vector<int> prev;
+    grafo.dijkstra(id1, dist, prev);
+
+    if (dist[id2] == INT_MAX) {
+        cout << "No hay camino disponible entre " << nombre1 << " y " << nombre2 << ".\n";
+    }
+    else {
+        cout << "La distancia más corta entre " << nombre1 << " y " << nombre2 << " es " << dist[id2] << " km.\n";
+        cout << "Camino: ";
+        int crawl = id2;
+        vector<int> path;
+        while (prev[crawl] != -1) {
+            path.push_back(crawl);
+            crawl = prev[crawl];
+        }
+        path.push_back(id1);
+
+        for (int i = path.size() - 1; i >= 0; --i) {
+            cout << grafo.obtenerVertice(path[i]).getNombreCompleto();
+            if (i != 0) {
+                cout << " -> ";
+            }
+        }
+        cout << endl;
+    }
+}
 
 void AnadirReviewsmain(Nodo<Cliente*>* nodoCliente, Lista<Resena*>& listaReviews) {
     if (nodoCliente == nullptr) {
@@ -250,21 +339,21 @@ void registrarCliente(Lista<Usuario*>& listaUsuarios, Lista<Reservacion*>& lista
         Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, std::stoi(habitacion), tipoAlojamiento, lugar, promocion);
         listaUsuarios.insertarFinal(nuevoCliente);
 
+        // Crear y añadir reservación
+        Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
+        listaReservaciones.insertarFinal(nuevaReservacion);
+
+        // Crear y añadir reseña
+        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombreCompleto, "Reseña sobre la habitación: " + habitacion, rand() % 10 + 1);
+        listaReviews.insertarFinal(nuevaReview);
+
         cout << "Cliente registrado con éxito.\n";
-
-        // Aquí se asume que generarFactura y AnadirReviewsmain son funciones válidas que están definidas y funcionales en tu proyecto
-        // Ajusta esta parte según cómo estén definidas y cómo quieres que funcionen
-
-        // generarFactura(*nuevoCliente, Inventario(), id);  // Comentado temporalmente ya que Inventario no está definido aquí
-        // Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitacion);
-        // listaReservaciones.insertarFinal(nuevaReservacion);
-        // AnadirReviewsmain(listaUsuarios.getInicio(), listaReviews);
-
         cout << "Reservación creada con éxito para " << nuevoCliente->getNombreCompleto() << ".\n";
     }
 }
 
-void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, int& id) {
+
+void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, Lista<Reservacion*>& listaReservaciones, Lista<Resena*>& listaReviews, int& id) {
     system("cls");
     cout << "\n*Registro de Clientes Aleatorios en Cola*\n";
 
@@ -302,9 +391,18 @@ void registrarClientePrescencial(Cola<Usuario*>& colaUsuarios, int& id) {
         Cliente* nuevoCliente = new Cliente(id++, nombreCompleto, edad, habitacion, tipoAlojamiento, lugar, promocion);
         colaUsuarios.encolar(nuevoCliente);
 
+        // Crear y añadir reservación
+        Reservacion* nuevaReservacion = new Reservacion(nombreCompleto, habitaciones[idx]);
+        listaReservaciones.insertarFinal(nuevaReservacion);
+
+        // Crear y añadir reseña
+        Resena* nuevaReview = new Resena(listaReviews.getTamano() + 1, nombreCompleto, "Reseña sobre la habitación: " + habitaciones[idx], rand() % 10 + 1);
+        listaReviews.insertarFinal(nuevaReview);
+
         cout << "Cliente registrado en la cola con éxito.\n";
     }
 }
+
 
 void mostrarInfoCliente(Usuario* Usuario) {
     cout << "Atendiendo a: " << Usuario->getNombre() << endl;
@@ -425,7 +523,7 @@ int main() {
     int id = 1;
 
     do {
-        menuSelector(); 
+        mostrarMenu();
         cin >> opcion;
 
         switch (opcion) {
@@ -442,7 +540,7 @@ int main() {
                 system("cls");
             }
             else if (subOpcion == 2) {
-                registrarClientePrescencial(colaUsuarios, id);
+                registrarClientePrescencial(colaUsuarios, listaReservaciones, listaReviews, id);
                 cout << "Cliente Encolado con exito \n";
                 system("cls");
             }
@@ -598,16 +696,28 @@ int main() {
             cout << "Mostrando conexiones en el grafo..." << endl;
             gestionDatos.mostrarGrafo();
             break;
-        case 20:
+        case 20: {
+            system("cls");
+            cout << "Distancia más corta entre:\n";
+            cout << "Nombre de usuario 1: ";
+            string nombre1;
+            cin.ignore();
+            getline(cin, nombre1);
+            cout << "Nombre de usuario 2: ";
+            string nombre2;
+            getline(cin, nombre2);
+
+            gestionDatos.encontrarCaminoMasCorto(nombre1, nombre2);
+            break;
+        }
+        case 21:
             cout << "Saliendo del sistema.\n";
             servidor.apagar();
             break;
         default:
             cout << "Opción no válida. Por favor intente nuevamente.\n";
         }
-    } while (opcion != 20);
+    } while (opcion != 21);
 
     return 0;
 }
-
-

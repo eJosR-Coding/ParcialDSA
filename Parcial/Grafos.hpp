@@ -1,4 +1,3 @@
-#pragma once
 #ifndef __GRAFO_HPP__
 #define __GRAFO_HPP__
 
@@ -30,71 +29,68 @@ private:
     class CVertice {
     public:
         T info;
-        vector<CArco*>* ady; // Lista(Vector) de adyacencia
+        vector<CArco*> ady; // Lista(Vector) de adyacencia
 
         CVertice() {
             info = T();
-            ady = new vector<CArco*>();
         }
     };
 
-    vector<CVertice*>* vertices;
+    vector<CVertice*> vertices;
 
 public:
-    CGrafo() {
-        vertices = new vector<CVertice*>();
-    }
+    CGrafo() {}
 
     // Operaciones del Grafo
     int adicionarVertice(T info) {
         CVertice* vert = new CVertice();
         vert->info = info;
-        vertices->push_back(vert);
-        return static_cast<int>(vertices->size()) - 1; // retorna posición del vértice agregado (al final)
+        vertices.push_back(vert);
+        return static_cast<int>(vertices.size()) - 1; // retorna posición del vértice agregado (al final)
     }
 
     int cantidadVertices() const {
-        return vertices->size();
+        return static_cast<int>(vertices.size());
     }
 
     T obtenerVertice(int v) { // Obtener Vértice dado su posición en el vector
-        return (vertices->at(v))->info;
+        return vertices.at(v)->info;
     }
 
     void modificarVertice(int v, T info) {
-        (vertices->at(v))->info = info;
+        vertices.at(v)->info = info;
     }
 
     // Operaciones del arco
     int adicionarArco(int v, int vLlegada, double peso) {
-        CVertice* ver = vertices->at(v);
+        CVertice* ver = vertices.at(v);
         CArco* arc = new CArco(vLlegada, peso);
-        ver->ady->push_back(arc);
-        return static_cast<int>(ver->ady->size()) - 1;
+        ver->ady.push_back(arc);
+        return static_cast<int>(ver->ady.size()) - 1;
     }
 
     int cantidadArcos(int v) const {
-        return static_cast<int>(vertices->at(v)->ady->size());
+        return static_cast<int>(vertices.at(v)->ady.size());
     }
 
-    T obtenerArco(int v, int apos) {
-        CVertice* ver = vertices->at(v);
-        return (ver->ady->at(apos))->info;
+    CArco* obtenerArco(int v, int apos) {
+        CVertice* ver = vertices.at(v);
+        return ver->ady.at(apos);
     }
 
     void modificarArco(int v, int apos, T info) {
-        CVertice* ver = vertices->at(v);
-        (ver->ady->at(apos))->info = info;
+        CVertice* ver = vertices.at(v);
+        ver->ady.at(apos)->info = info;
     }
 
     int obtenerVerticeLlegada(int v, int apos) {
-        CVertice* ver = vertices->at(v);
-        return (ver->ady->at(apos))->v;
+        CVertice* ver = vertices.at(v);
+        return ver->ady.at(apos)->v;
     }
 
     double obtenerPesoArco(int v, int apos) {
-        CVertice* ver = vertices->at(v);
-        return (ver->ady->at(apos))->peso;
+        CVertice* ver = vertices.at(v);
+        return ver->ady.at(apos)->peso;
     }
 
     // Método para calcular la distancia entre dos coordenadas
@@ -106,7 +102,7 @@ public:
 
     // Generar conexiones entre clientes basándose en las coordenadas
     void generarConexionesAleatorias() {
-        int numVertices = static_cast<int>(cantidadVertices());
+        int numVertices = cantidadVertices();
         if (numVertices < 2) {
             cout << "No hay suficientes vértices para generar conexiones." << endl;
             return;
@@ -125,17 +121,17 @@ public:
         cout << "Conexiones generadas exitosamente.\n";
     }
 
-    void CGrafo<T>::mostrarGrafo() {
-        if (vertices->empty()) {
+    void mostrarGrafo() {
+        if (vertices.empty()) {
             cout << "El grafo está vacío." << endl;
             return;
         }
 
         for (int i = 0; i < cantidadVertices(); ++i) {
-            cout << "Cliente " << i << " (" << obtenerVertice(static_cast<int>(i)).getNombreCompleto() << "):\n";
-            for (int j = 0; j < cantidadArcos(static_cast<int>(i)); ++j) {
-                int destino = obtenerVerticeLlegada(static_cast<int>(i), static_cast<int>(j));
-                double peso = obtenerPesoArco(static_cast<int>(i), static_cast<int>(j));
+            cout << "Cliente " << i << " (" << obtenerVertice(i).getNombreCompleto() << "):\n";
+            for (int j = 0; j < cantidadArcos(i); ++j) {
+                int destino = obtenerVerticeLlegada(i, j);
+                double peso = obtenerPesoArco(i, j);
                 cout << "  -> Cliente " << destino << " (" << obtenerVertice(destino).getNombreCompleto() << ") : " << peso << " km\n";
             }
             cout << endl;
@@ -143,9 +139,10 @@ public:
     }
 
     // Implementar Dijkstra
-    void dijkstra(int src) {
-        const int V = static_cast<int>(cantidadVertices());
-        vector<double> dist(V, INT_MAX);
+    void dijkstra(int src, vector<double>& dist, vector<int>& prev) {
+        int V = cantidadVertices();
+        dist.resize(V, INT_MAX);
+        prev.resize(V, -1);
         vector<bool> sptSet(V, false);
 
         dist[src] = 0;
@@ -156,37 +153,58 @@ public:
 
             for (int v = 0; v < V; ++v) {
                 int j = obtenerVerticeLlegada2(u, v);
-                if (j != -1 && !sptSet[v] && obtenerArco(u, j) && dist[u] != INT_MAX && dist[u] + obtenerPesoArco(u, j) < dist[v]) {
-                    dist[v] = dist[u] + obtenerPesoArco(u, j);
+                CArco* arco = obtenerArco(u, j);
+                if (j != -1 && !sptSet[v] && arco && dist[u] != INT_MAX && dist[u] + arco->peso < dist[v]) {
+                    dist[v] = dist[u] + arco->peso;
+                    prev[v] = u;
                 }
             }
         }
+    }
 
-        printSolution(dist);
+    void encontrarCaminoMasCorto(int src, int dest) {
+        vector<double> dist;
+        vector<int> prev;
+        dijkstra(src, dist, prev);
+
+        if (dist[dest] == INT_MAX) {
+            cout << "No hay camino entre los clientes especificados." << endl;
+            return;
+        }
+
+        cout << "Distancia más corta entre los clientes: " << dist[dest] << " km" << endl;
+        cout << "Camino: ";
+        printPath(dest, prev);
+        cout << endl;
     }
 
 private:
-    int minDistance(vector<double>& dist, vector<bool>& sptSet) {
+    int minDistance(const vector<double>& dist, const vector<bool>& sptSet) {
         double min = INT_MAX;
-        int min_index;
+        int min_index = -1;
 
-        for (int v = 0; v < static_cast<int>(dist.size()); ++v)
-            if (!sptSet[v] && dist[v] <= min)
-                min = dist[v], min_index = v;
+        for (int v = 0; v < static_cast<int>(dist.size()); ++v) {
+            if (!sptSet[v] && dist[v] <= min) {
+                min = dist[v];
+                min_index = v;
+            }
+        }
 
         return min_index;
     }
 
-    void printSolution(vector<double>& dist) {
-        cout << "Vertice \t Distancia desde Origen\n";
-        for (int i = 0; i < static_cast<int>(dist.size()); ++i)
-            cout << i << " \t\t " << dist[i] << endl;
+    void printPath(int j, const vector<int>& prev) {
+        if (prev[j] == -1)
+            return;
+
+        printPath(prev[j], prev);
+        cout << j << " ";
     }
 
     int obtenerVerticeLlegada2(int v, int dst) {
-        CVertice* ver = vertices->at(v);
+        CVertice* ver = vertices.at(v);
         for (int j = 0; j < cantidadArcos(v); ++j) {
-            int verticeLlegada = ver->ady->at(j)->v;
+            int verticeLlegada = ver->ady.at(j)->v;
             if (verticeLlegada == dst) {
                 return j;
             }

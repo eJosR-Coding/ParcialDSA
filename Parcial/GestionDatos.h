@@ -23,7 +23,7 @@ class GestionDatos {
 private:
     ArbolBB<Cliente>* arbol;
     string nombre_archivo;
-   
+
     Cola<Usuario*> colaUsuarios;
     CGrafo<Cliente> grafo;
 
@@ -46,11 +46,12 @@ public:
     void adicionarVerticeGrafo(Cliente cliente) { grafo.adicionarVertice(cliente); }
     CGrafo<Cliente>& getGrafo() { return grafo; } // Método para obtener una referencia al grafo
 
-   
+
     // Métodos para mostrar el árbol
     void mostrarArbolEnOrden() { arbol->enOrden(); }
     void mostrarArbolPreOrden() { arbol->preOrden(); }
     void mostrarArbolPostOrden() { arbol->postOrden(); }
+    void encontrarCaminoMasCorto(const string& nombre1, const string& nombre2);
 };
 
 GestionDatos::GestionDatos() {
@@ -58,6 +59,44 @@ GestionDatos::GestionDatos() {
     arbol = new ArbolBB<Cliente>(imprimir);
     tablaclientes = HashTablaA();
 }
+
+void GestionDatos::encontrarCaminoMasCorto(const string& nombre1, const string& nombre2) {
+    int src = -1;
+    int dest = -1;
+
+    for (int i = 0; i < grafo.cantidadVertices(); ++i) {
+        if (grafo.obtenerVertice(i).getNombreCompleto() == nombre1) {
+            src = i;
+        }
+        if (grafo.obtenerVertice(i).getNombreCompleto() == nombre2) {
+            dest = i;
+        }
+    }
+
+    if (src == -1 || dest == -1) {
+        cout << "Uno o ambos nombres no se encontraron en el grafo." << endl;
+        return;
+    }
+
+    vector<double> dist;
+    vector<int> prev;
+    grafo.dijkstra(src, dist, prev);
+
+    if (dist[dest] == INT_MAX) {
+        cout << "No hay camino entre los clientes especificados." << endl;
+        return;
+    }
+
+    cout << "Distancia más corta entre los clientes: " << dist[dest] << " km" << endl;
+    cout << "Camino: ";
+    int u = dest;
+    while (prev[u] != -1) {
+        cout << grafo.obtenerVertice(u).getNombreCompleto() << " <- ";
+        u = prev[u];
+    }
+    cout << grafo.obtenerVertice(src).getNombreCompleto() << endl;
+}
+
 
 void AnadirReviews(Nodo<Cliente*>* nodoCliente, Lista<Resena*>& listaReviews) {
     if (nodoCliente == nullptr) {
@@ -107,15 +146,14 @@ void GestionDatos::LecturaDatosArchivo() {
     }
 
     string linea;
-    char delimitador = '|'; // Column separator
-    int id = 1; // Assuming ID starts from 1
+    char delimitador = '|';
+    int id = 1;
 
-    // Skip the header line
     getline(archIN, linea);
 
     // Read each line
     while (getline(archIN, linea)) {
-        stringstream stream(linea); // Convert line to stringstream
+        stringstream stream(linea);
 
         string col1, col4, col5, col6, col7, col8;
         int col2, col3;
@@ -124,10 +162,10 @@ void GestionDatos::LecturaDatosArchivo() {
         getline(stream, col1, delimitador); // NombreCompleto
         string col2Str; // edad
         getline(stream, col2Str, delimitador);
-        col2 = stoi(col2Str); // Convert to integer
+        col2 = stoi(col2Str);
         string col3Str; // habitacion
         getline(stream, col3Str, delimitador);
-        col3 = stoi(col3Str); // Convert to integer
+        col3 = stoi(col3Str);
         getline(stream, col4, delimitador); // tipoAlojamiento
         getline(stream, col5, delimitador); // lugar
         getline(stream, col6, delimitador); // promocion
@@ -136,21 +174,18 @@ void GestionDatos::LecturaDatosArchivo() {
         getline(stream, col8, delimitador); // longitud
         col8Double = stod(col8);
 
-        // Create a new Cliente object
         Cliente* cliente = new Cliente(id++, col1, col2, col3, col4, col5, col6);
         cliente->setLatitud(col7Double);
         cliente->setLongitud(col8Double);
 
         grafo.adicionarVertice(*cliente);
 
-        // Insert the client into the tree and hash table
         arbol->insertar(*cliente);
         tablaclientes.insert(*cliente);
 
         cout << "Cliente insertado :d: " << cliente->getNombreCompleto() << endl;
     }
 
-    // Close the file
     archIN.close();
 }
 
@@ -165,7 +200,6 @@ void GestionDatos::Generar_Arbol() {
 void GestionDatos::Intervalo_Clientes() {
     arbol->Intervalo_Clientes(Cliente(0, "R", 0, 0, "", "", ""), Cliente(0, "S", 0, 0, "", "", ""));
 }
-
 
 string GestionDatos::buscar_Cliente(string nombre) {
     Cliente cliente(0, nombre, 0, 0, "", "", "");

@@ -18,7 +18,7 @@ private:
     double longitud;
 
 public:
-    // Constructor with default values
+
     Cliente(int id = 0, std::string nombreCompleto = "", int edad = 0, int habitacion = 0, std::string tipoAlojamiento = "", std::string lugar = "", std::string promocion = "", double latitud = 0, double longitud = 0)
         : Usuario(id, nombreCompleto, "N/A"),
         nombreCompleto(nombreCompleto),

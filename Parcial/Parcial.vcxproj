@@ -137,7 +137,6 @@
     <ClInclude Include="Grafos.hpp" />
     <ClInclude Include="HashTable.h" />
     <ClInclude Include="Mantenimiento.h" />
-    <ClInclude Include="menu.h" />
     <ClInclude Include="NodoArbol.h" />
     <ClInclude Include="Resena.h" />
     <ClInclude Include="ServerStatus.h" />
